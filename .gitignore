@@ -134,4 +134,4 @@ ehthumbs.db
 Thumbs.db
 
 # Pycharm project
-idea/
+.idea/
