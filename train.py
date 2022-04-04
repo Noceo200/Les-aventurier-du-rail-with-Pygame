@@ -1,5 +1,5 @@
 class test:
     def __init__(self):
-        self.banane = 2
+        self.banane = 3
 
 print("Lol")
