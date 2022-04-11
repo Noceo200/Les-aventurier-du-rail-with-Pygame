@@ -1,25 +1,30 @@
 import numpy as np
+import copy
 
 class Card:
     """
     Classe qui décrit l'objet carte
     """
-    def __init__(self,type, color = "None"):
+    def __init__(self,type, color = "None", destination = ("None","None")):
         """
-            Créer une carte avec le type et la couleur voulu.
+            Créer une carte avec le type et la couleur voulu ou la destination voulu.
 
             Paramètres :
             ----------------
             type : string
                 "destination" = Cartes destinations, "wagon" = Cartes wagon.
 
-            Color : string
+            Color : string (Seulement pour les cartes de type wagon)
                 "rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout".
+
+            destination : double string (Seulement pour les cartes de type destination)
+                ("Ville1","Ville2").
             ----------------
         """
 
         self.type = type
         self.color = color
+        self.destination = destination
 
 class Draw_pile:
     """
@@ -37,7 +42,7 @@ class Draw_pile:
             ----------------
         """
 
-        self.cards = cards
+        self.cards = copy.deepcopy(cards)
 
     def mix(self):
         """
@@ -61,5 +66,6 @@ class Draw_pile:
        """
 
         for i in range(amount):
-            np.append(target.cards,self.cards[len(self.cards)-1])
-            np.delete(self.cards,len(self.cards)-1)
+            target.cards = np.append(target.cards,self.cards[-1])
+            self.cards = np.delete(self.cards,-1)
+

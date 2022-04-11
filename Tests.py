@@ -1,23 +1,81 @@
+import unittest
+import numpy as np
 from Objects import *
 
 """
 Test des objets
 """
 
-class TestCard: #Carte
+class TestCard(unittest.TestCase):
 
-    def __init__(self,type, color = "None"): #Type de carte : "destination" = Cartes destinations, "wagon" = Cartes wagon // Couleur : "rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout"
-        self.type = type
-        self.color = color
+    def test_init(self):
+        card1 = Card("destination")
+        card2 = Card("destination",destination = ("Ville1","Ville2"))
+        card3 = Card("wagon",color = "bleu")
 
-class TestDraw_pile: #pioche de carte
+        self.assertEqual(card1.type,"destination")
+        self.assertEqual(card1.color, "None")
+        self.assertEqual(card1.destination, ("None","None"))
+        self.assertEqual(card2.type, "destination")
+        self.assertEqual(card2.color, "None")
+        self.assertEqual(card2.destination, ("Ville1","Ville2"))
+        self.assertEqual(card3.type, "wagon")
+        self.assertEqual(card3.color, "bleu")
+        self.assertEqual(card3.destination, ("None", "None"))
 
-    def __init__(self,cards): #Cards = array numpy de toutes les cartes qui composent la pioche
-        self.cards = cards
+class TestDraw_pile(unittest.TestCase):
 
-    def mix(self): #on mélange le paquet de cartes
-        np.random.shuffle(self.cards)
+    def setUp(self):
+        self.list_cards = np.array([Card("destination",destination = ("Ville1","Ville2")),
+                               Card("destination", destination=("Ville3", "Ville4")),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "rouge"),
+                               Card("wagon",color = "rose"),
+                               Card("wagon",color = "orange")])
 
-    def draw(self,amount): #on pioche "amount" cartes
-        for i in range(amount):
-            np.delete(self.cards,len(self.cards)-1)
+        self.pile = Draw_pile(self.list_cards)
+
+    def test_init(self): #vérification de l'initialisation de notre objet
+        # ////INITIALISATION////
+        verif = True
+        # ////TESTS////
+        if len(self.pile.cards) != len(self.list_cards):
+            verif = False
+        else : #verification qu'on a les cartes voulus
+            for i in range(len(self.list_cards)):
+                if (self.pile.cards[i].destination != self.list_cards[i].destination) or (self.pile.cards[i].color != self.list_cards[i].color):
+                    verif = False
+        self.assertTrue(verif)
+
+    def test_mix(self):
+        # ////INITIALISATION////
+        self.pile.mix()
+        # ////TESTS////
+        verif = False
+        for i in range(len(self.list_cards)):
+            if (self.pile.cards[i].destination != self.list_cards[i].destination) or (self.pile.cards[i].color != self.list_cards[i].color):
+                verif = True
+
+        self.assertTrue(verif) #on vérifie que le paquet de carte n'est plus le meme qu'avant
+
+    def test_draw(self):
+        # ////INITIALISATION////
+        pile2 = Draw_pile(np.array([]))
+        to_draw = self.pile.cards[len(self.pile.cards)-5:len(self.pile.cards)] #ce qui est censé etre pioché
+        initial_len = len(self.pile.cards) #nombre de cartes avant pioche dans le paquet ou on va piocher
+        self.pile.draw(5,pile2)
+        verif = True
+        # ////TESTS////
+        if len(pile2.cards) != len(to_draw):
+            verif = False
+        else : #verification qu'on a les cartes voulus dans la pile cible
+            for i in range(len(to_draw)):
+                if (pile2.cards[i].destination != to_draw[len(to_draw)-i-1].destination) or (pile2.cards[i].color != to_draw[len(to_draw)-i-1].color):
+                    verif = False
+        self.assertTrue(verif) #on vérifie que la pile 2 à bien recu les cartes a piocher
+        self.assertEqual(len(self.pile.cards), initial_len-len(to_draw)) #on vérifie qu'on a bien effacer les cartes de la pile initial
+
+
+if __name__ == '__main__' :
+    unittest.main()
