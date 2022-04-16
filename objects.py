@@ -38,7 +38,7 @@ class Draw_pile:
 
     """
     def __init__(self,cards):
-        """
+        r"""
             Créer un paquet de cartes avec les cartes choisis.
 
             Paramètres :
@@ -53,7 +53,7 @@ class Draw_pile:
     def mix(self):
         """
            Mélange le paquet de carte.
-       """
+        """
 
         np.random.shuffle(self.cards)
 

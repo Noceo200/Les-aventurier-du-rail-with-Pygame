@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from Objects import *
+from objects import *
 
 """
 Test des objets
