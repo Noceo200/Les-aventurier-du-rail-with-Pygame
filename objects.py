@@ -162,3 +162,12 @@ class Player:
         """
 
         #utiliser player_wagon_cards(self) pour vérifier si prise de route possible ou non
+
+
+    #
+
+#plateau
+#routes
+
+#villes (lié au graphisme)
+#wagon (lié au graphisme)
