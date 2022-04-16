@@ -4,6 +4,9 @@ import copy
 class Card:
     """
     Classe qui décrit l'objet carte
+
+    Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
+
     """
     def __init__(self,type, color = "None", destination = ("None","None")):
         """
@@ -30,6 +33,9 @@ class Draw_pile:
     """
        Classe qui décrit l'objet paquet de carte
        (Utile pour définir les différentes pioches)
+
+       Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
+
     """
     def __init__(self,cards):
         """
@@ -68,4 +74,5 @@ class Draw_pile:
         for i in range(amount):
             target.cards = np.append(target.cards,self.cards[-1])
             self.cards = np.delete(self.cards,-1)
+
 

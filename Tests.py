@@ -8,11 +8,13 @@ Test des objets
 
 class TestCard(unittest.TestCase):
 
-    def test_init(self):
+    def test_init(self): #vérification de l'initialisation de notre objet
+        #création des objets utiles
         card1 = Card("destination")
         card2 = Card("destination",destination = ("Ville1","Ville2"))
         card3 = Card("wagon",color = "bleu")
 
+        # ////TESTS////
         self.assertEqual(card1.type,"destination")
         self.assertEqual(card1.color, "None")
         self.assertEqual(card1.destination, ("None","None"))
@@ -25,7 +27,7 @@ class TestCard(unittest.TestCase):
 
 class TestDraw_pile(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self): #création des objets utiles
         self.list_cards = np.array([Card("destination",destination = ("Ville1","Ville2")),
                                Card("destination", destination=("Ville3", "Ville4")),
                                Card("wagon",color = "bleu"),
