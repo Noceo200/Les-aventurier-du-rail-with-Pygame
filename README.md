@@ -8,7 +8,7 @@ AUTEURS : NOEL Océan et LEVRIER-MUSSAT Gautier
 
 ### Lancement
 
-Pour lancer le jeu, il faut simplement lancer le script "game"
+Pour lancer le jeu, il faut lancer le script "game"
 
 ### Documentation
 
