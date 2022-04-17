@@ -133,23 +133,23 @@ class Player:
             Paramètres :
             indice(int)
                 indice qui permet de choisir quelle carte il veut piocher :
-                - indice entre 1 et 6 => Le joueur veut piocher une des 6 cartes wagon face visible
-                - indice = 7 => Le joueur veut piocher dans la pioche (cartes face cachées)
+                - indice entre 1 et 5 => Le joueur veut piocher une des 5 cartes wagon face visible
+                - indice = 6 => Le joueur veut piocher dans la pioche (cartes face cachées)
 
             pioche(Object.Draw_pile)
                 paquet de cartes qui correspond à la pioche pour les cartes wagon
         """
 
-        if indice == 7 : #si le joueur pioche dans la pioche, il perd juste un crédit, et il ne peut plus piocher de locomotive face visible
+        if indice == 6 : #si le joueur pioche dans la pioche, il perd juste un crédit, et il ne peut plus piocher de locomotive face visible
             self.draw_credit -= 1 #on retire un crédit
             self.status = "drawing_wagon" #mise à jour du status du joueur
-            pioche.draw(1,self.wagon_cards,-indice)
+            pioche.draw(1,self.wagon_cards,-indice) #on transfère la carte piocher vers les cartes du joueur
         else :
             if pioche.cards[-indice].color == "tout" and self.draw_credit > 1 : #si c'est une locomotive et que le joueur à le droit de la piocher
                 self.draw_credit -= 2  # on retire deux crédits
                 pioche.draw(1, self.wagon_cards, -indice)
             elif pioche.cards[-indice].color == "tout" : #sinon si il peut pas piocher la locomotive
-                message("Vous ne pouvez pas piocher de locomotive après avoir piocher une première carte",5)
+                message("Vous ne pouvez pas piocher une locomotive après avoir piocher une première carte",5) #Affiche du message pendant 5s
                 pass
             else : #sinon si c'est une autre carte
                 self.draw_credit -= 1  # on retire un crédit
@@ -164,24 +164,23 @@ class Player:
             Permet au joueur de piocher une carte destination lorsque c'est sont tour.
 
             Paramètres :
-            indice(int)
-                indice qui permet de choisir quelle carte il veut piocher :
-                - indice entre 1 et 3
+                indice(int)
+                    indice qui permet de choisir quelle carte il veut piocher :
+                    - indice entre 1 et 3
 
-            pioche(Object.Draw_pile)
-                paquet de cartes qui correspond à la pioche pour les cartes destination
+                pioche(Object.Draw_pile)
+                    paquet de cartes qui correspond à la pioche pour les cartes destination
         """
 
         #le programme principale gère le changement graphique qui affiche les cartes destinations
 
-        self.draw_credit -= 1  # on retire un crédit
+        self.draw_credit -= 1  # on retire un crédit de pioche
         self.status = "drawing_destination1"  # mise à jour du status du joueur
-        pioche.draw(1, self.destination_cards, -indice)
+        pioche.draw(1, self.destination_cards, -indice) #transfère la carte piochée de la pioche vers les cartes du joueur
 
-        if self.draw_credit == 0:  # si le joueur a pioché sa deuxième carte destination, on change son status pour l'autoriser à arreter de piocher
-            self.status = "drawing_destination2"
+        #Dans le programme principale le joueur peut de nouveau piocher ou peut arreter
 
-        if self.draw_credit == -1: #le joueur peut piocher jusqu'a 3 cartes destination, son tour se termine quand il a -1 credits ou quand il veut piocher que 2 cartes
+        if self.draw_credit == -1: #le joueur peut piocher jusqu'a 3 cartes destination, son tour se termine donc quand il a -1 credits
             self.status = "None"
 
     def take_route(self,road,pioche,verif = False):
@@ -189,14 +188,14 @@ class Player:
             Permet au joueur de prendre possession d'une route lorsque c'est sont tour.
 
             Paramètres :
-            road(Objetc.Road)
-                Route que le joueur souhaite prendre.
+                road(Objetc.Road)
+                    Route que le joueur souhaite prendre.
 
-            pioche(Object.Draw_pile)
-                Pioche où défaussez les cartes.
+                pioche(Object.Draw_pile)
+                    Pioche où défaussez les cartes.
 
-            verif(Bool)
-                Paramètre pour définir si il a le droit de prendre la route ou pas.
+                verif(Bool)
+                    Paramètre pour définir si il a le droit de prendre la route ou pas.
         """
         joker_use = 0 #variable pour gérer l'utilisation ou non de joker
         color_chose = road.color #variable pour gérer le choix de la couleur à utiliser lorsque la route le permet, elle vaut celle de la route par defaut
@@ -213,9 +212,9 @@ class Player:
                             color_possible = np.append(color_possible,0) #on ajoute la position de la couleur qu'on peut utiliser
                         i += 1
                     color_chose = pop_up("Choisissez quels wagons de la même couleur poser, il en faut "+str(len(road.sites)),
-                                         [self.cards_bar.cards[i] for i in color_possible]).color # propose à l'utilisateur de choisir entre les wahons possibles et renvoie la couleur de la carte choisi par l'utilisateur
+                                         [self.cards_bar.cards[i] for i in color_possible]).color # propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisie
                     verif = True
-                elif max(wagons_player.items())+wagons_player["tout"] >= len(road.sites): #si on a pas assez de wagons d'une meme couleur mais qu'on a assez de jokers, on demande quelle couleur utiliser avec les jokers
+                elif max(wagons_player.items())+wagons_player["tout"] >= len(road.sites): #si on a pas assez de wagons d'une meme couleur mais qu'on a assez de jokers, on demande quelle couleur utiliser
                     color_possible = []  # on regard entre quelles couleur l'utilisateur à le choix
                     i = 0
                     for key in wagons_player:
@@ -224,7 +223,7 @@ class Player:
                         i += 1
                     color_chose = pop_up("Vous avez "+str(wagons_player["tout"])+" jokers, "
                                          +"choisissez quels wagons de la même couleur poser, il en faut " + str(len(road.sites)-wagons_player["tout"]),
-                                         [self.cards_bar.cards[i] for i in color_possible]).color  # propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisi par l'utilisateur
+                                         [self.cards_bar.cards[i] for i in color_possible]).color  #propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisie
                     joker_use = len(road.sites) - wagons_player[color_chose] #nombre de joker a utiliser
                     verif = True
                 else :
@@ -284,17 +283,17 @@ class Board():
         Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
 
         Paramètres :
-        destination_pile(Object.Draw_pile)
-            Pioche pour les cartes destination.
+            destination_pile(Object.Draw_pile)
+                Pioche pour les cartes destination.
 
-        wagon_pile(Object.Draw_pile)
-            Pioche pour les cartes wagon.
+            wagon_pile(Object.Draw_pile)
+                Pioche pour les cartes wagon.
 
-        cities(numpy.Array(Object.City))
-            Villes présentent dans le jeu.
+            cities(numpy.Array(Object.City))
+                Villes présentent dans le jeu.
 
-        roads(numpy.Array(Object.Road))
-            Routes présente dans le jeu.
+            roads(numpy.Array(Object.Road))
+                Routes présente dans le jeu.
     """
 
     def __init__(self,destination_pile,wagon_pile,cities,roads):
