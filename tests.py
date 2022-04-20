@@ -1,10 +1,13 @@
 import unittest
 import numpy as np
 from objects import *
+import pygame
 
 """
 Test des objets
 """
+
+pygame.init()
 
 class TestCard(unittest.TestCase):
     """
@@ -27,6 +30,23 @@ class TestCard(unittest.TestCase):
         self.assertEqual(card3.color, "bleu")
         self.assertEqual(card3.destination, ("None", "None"))
 
+
+list_cards = np.array([Card("destination",destination = ("Ville1","Ville2")),
+                               Card("destination", destination=("Ville3", "Ville4")),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "rouge"),
+                               Card("wagon",color = "rose"),
+                               Card("wagon",color = "orange")])
+
+list_cards_sav = np.array([Card("destination",destination = ("Ville1","Ville2")),
+                               Card("destination", destination=("Ville3", "Ville4")),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "bleu"),
+                               Card("wagon",color = "rouge"),
+                               Card("wagon",color = "rose"),
+                               Card("wagon",color = "orange")])
+
 class TestDraw_pile(unittest.TestCase):
     """
         Test de l'objet Draw_pile, paquet de cartes.
@@ -35,15 +55,7 @@ class TestDraw_pile(unittest.TestCase):
         """
             On créer une liste de cartes et une pioche qui contient ces cartes
         """
-        self.list_cards = np.array([Card("destination",destination = ("Ville1","Ville2")),
-                               Card("destination", destination=("Ville3", "Ville4")),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "rouge"),
-                               Card("wagon",color = "rose"),
-                               Card("wagon",color = "orange")])
-
-        self.pile = Draw_pile(self.list_cards)
+        self.pile = Draw_pile(list_cards)
 
     def test_init(self):
         """
@@ -52,11 +64,11 @@ class TestDraw_pile(unittest.TestCase):
         # ////INITIALISATION////
         verif = True #variable de vérification
         # ////TESTS////
-        if len(self.pile.cards) != len(self.list_cards): #on vérifie que la taille de notre pioche est correcte
+        if len(self.pile.cards) != len(list_cards): #on vérifie que la taille de notre pioche est correcte
             verif = False
         else : #on vérifie que chaque carte du paquet correspond bien à celle voulu
-            for i in range(len(self.list_cards)):
-                if (self.pile.cards[i].destination != self.list_cards[i].destination) or (self.pile.cards[i].color != self.list_cards[i].color):
+            for i in range(len(list_cards)):
+                if (self.pile.cards[i].destination != list_cards[i].destination) or (self.pile.cards[i].color != list_cards[i].color):
                     verif = False
         self.assertTrue(verif)
 
@@ -68,8 +80,8 @@ class TestDraw_pile(unittest.TestCase):
         self.pile.mix() #on mélange les carte
         # ////TESTS////
         verif = False
-        for i in range(len(self.list_cards)): #on vérifie qu'au moins une des cartes à été déplacée
-            if (self.pile.cards[i].destination != self.list_cards[i].destination) or (self.pile.cards[i].color != self.list_cards[i].color):
+        for i in range(len(list_cards)): #on vérifie qu'au moins une des cartes à été déplacée
+            if (self.pile.cards[i].destination != list_cards_sav[i].destination) or (self.pile.cards[i].color != list_cards_sav[i].color):
                 verif = True
 
         self.assertTrue(verif)
@@ -98,3 +110,4 @@ class TestDraw_pile(unittest.TestCase):
 
 if __name__ == '__main__' :
     unittest.main()
+

@@ -1,13 +1,80 @@
-import numpy as np
 import copy
 from functions import *
+import pygame
 
-class Click_area():
-    #seulement pour partie graphique
-    #Class mère des zonnes cliquable avec détection si la souris passe dessus et si clique effectué (zone cliquable = bouttons + cartes)
-    pass
+class Graphic_area():
 
-class Card(Click_area):
+    def __init__(self,position,scale,image):
+
+        self.position = position
+        self.image = image
+        self.scale = scale
+        self.passed = False #variable pour gestion evennements
+
+        #Chargement de l'image
+        image = pygame.image.load(self.image)
+        image = image.convert()
+        #Determination de la position en pixels
+        self.x = int(self.position[0] * pygame.display.Info().current_w)
+        self.y = int(self.position[1] * pygame.display.Info().current_h)
+        #Mise à l'échelle de l'affichage
+        self.reso = image.get_width()/image.get_height()
+        perso_heigth = pygame.display.Info().current_h*self.scale
+        self.image = pygame.transform.scale(image, (int(perso_heigth*self.reso), int(perso_heigth)))
+
+    def represent(self):
+        """
+            Représente graphiquement la pioche sur le plateau.
+        """
+        # Mise à l'échelle de l'affichage
+        perso_heigth = pygame.display.Info().current_h * self.scale
+        self.image = pygame.transform.scale(self.image, (int(perso_heigth * self.reso), int(perso_heigth)))
+        #Affichage
+        display_surface = pygame.display.get_surface()
+        display_surface.blit(self.image, (self.x, self.y))
+
+    def check_event(self,event):
+        """
+            Vérifie si l'utilisateur place sa souris sur la zone ou clique sur la zone
+
+            Paramètres :
+                event(Object Pygame.event)
+                    Action réalisée par l'utilisateur à analyser.
+        """
+        center = (self.x+self.image.get_width()/2,self.y+self.image.get_height()/2)#position centrale de l'object
+        if event.type == pygame.MOUSEMOTION:
+            if abs(event.pos[0]-center[0]) <= self.image.get_width()/2 and abs(event.pos[1] - center[1]) <= self.image.get_height()/2 :
+                if self.passed == False:
+                    self.mouse_pass(True)
+                    self.passed = True
+            else:
+                if self.passed == True:
+                    self.mouse_pass(False)
+                    self.passed = False
+        if event.type == pygame.MOUSEBUTTONUP:
+            if abs(event.pos[0] - center[0]) <= self.image.get_width()/2 and abs(event.pos[1] - center[1]) <= self.image.get_height()/2 :
+                self.mouse_click()
+
+    def mouse_pass(self,enter):
+        """
+            Action à éxecuter en cas de survol de la zone par la souris
+
+            Paramètres:
+                enter(bool)
+                    Défini si on rentre ou si on sort de la zone
+        """
+        if enter == True :
+            self.image.set_alpha(100)
+        else:
+            self.image.set_alpha(255)
+
+    def mouse_click(self):
+        """
+            Action à éxecuter en cas de clique dans la zone par la souris
+        """
+        pass
+
+class Card(Graphic_area):
     """
     Classe qui décrit l'objet carte, qui peut etre soit une carte destination, soit une carte wagon, cette classe hérite de la classe Click_area qui permet de rendre un objet intéractif graphiquement.
 
@@ -23,21 +90,21 @@ class Card(Click_area):
             destination(string,string) (Seulement pour les cartes de type destination)
                 ("Ville1","Ville2").
     """
-    def __init__(self,type, color = "None", destination = ("None","None")):
+    def __init__(self,type, color = "None", destination = ("None","None"),position = (0,0),scale=1):
         """
             Créer une carte avec le type et la couleur voulu ou la destination voulu.
         """
-
+        image = ""
+        if type == "wagon":
+            image = "Resources\Card_"+color+".png"
+        elif type == "destination":
+            image = "Resources\Card_ville0_ville1.png"
+        super().__init__(copy.deepcopy(position), scale, image)
         self.type = type
         self.color = color
         self.destination = destination
 
-    def represent(self,position):
-        #seulement pour partie graphique
-        #doit représenter la carte la ou position donné (c'est ici que il faut mettre des représentation différente en fonction couleur et type carte)
-        pass
-
-class Draw_pile:
+class Draw_pile(Graphic_area):
     """
        Classe qui décrit l'objet paquet de carte
        (Utile pour définir les différentes pioches et mains des joueurs)
@@ -47,19 +114,27 @@ class Draw_pile:
        Paramètres :
             cards(numpy.array)
                 array numpy de toutes les cartes qui composent le paquet de carte.
+
+            position(int,int)
+                Position graphique en pourcentage, par exemple, (0.5,0.5) place l'objet au milieu.
+
+            scale(float)
+                Multiplicateur de taille d'affichage.
+
+            image(string)
+                Chemin vers le fichier image qui représente l'objet'.
     """
-    def __init__(self,cards):
+    def __init__(self,cards,position = (0,0),scale = 1,image = "Resources\Default_pioche.png"):
         """
             Créer un paquet de cartes avec les cartes choisis.
         """
-
-        self.cards = copy.deepcopy(cards)
+        super().__init__(copy.deepcopy(position),scale,image)
+        self.cards = cards #Donne accès directement à la variable global cards du programme principale
 
     def mix(self):
         """
            Mélange le paquet de carte.
         """
-
         np.random.shuffle(self.cards)
 
     def draw(self,amount,target,position = -1):
@@ -81,7 +156,7 @@ class Draw_pile:
             target.cards = np.append(target.cards,self.cards[position])
             self.cards = np.delete(self.cards,position)
 
-class Player:
+class Player():
     """
     Classe qui décrit un joueur.
 
@@ -294,27 +369,46 @@ class Board():
 
             roads(numpy.Array(Object.Road))
                 Routes présente dans le jeu.
+
+            display_surface(Object Pygame.Surface)
+                Zone d'affichage du plateau.
+
+            image(string)
+                Chemin vers le fichier image qui représente l'objet'.
     """
 
-    def __init__(self,destination_pile,wagon_pile,cities,roads):
+    def __init__(self,destination_pile,wagon_pile,cities,roads,display_surface,image = 'Resources\Map.png'):
         """
             Créer un plateau avec les pioches.
         """
         self.destination_pile = destination_pile
         self.wagon_pile = wagon_pile
-        self.cities = copy.deepcopy(cities)
-        self.roads = copy.deepcopy(roads)
+        self.cities = cities
+        self.roads = roads
+        self.display_surface = display_surface
+        self.image = image
 
 
     def represent(self):
         """
             Permet de representer graphiquement le plateau avec ses pioches, ses routes et ses villes.
         """
-        # Exemple code :
-        """
-            for road in roads :
-                road.represent() #utilisation de la méthode represent de chaque route pour qu'elles se placent toutes seul la ou il faut (avec zone cliquable)
-        """
+        #Affichage plateau
+        image = pygame.image.load('Resources\Map.png')
+        image = pygame.transform.scale(image, (pygame.display.Info().current_w, pygame.display.Info().current_h))
+        self.display_surface.blit(image, (0, 0))
+
+        #Affichage pioches
+        self.destination_pile.represent()
+        self.wagon_pile.represent()
+
+        #Affichage villes
+        for city in self.cities :
+            city.represent()
+
+        #Affichage routes
+        for road in self.roads:
+            road.represent()
 
 class Road():
     """
@@ -338,19 +432,49 @@ class Road():
             Créer une route qui relie les deux villes donnés en paramètre
         """
         self.cities = cities
-        self.sites = copy.deepcopy(sites)
+        self.sites = sites
         self.taken = False #booléen pour savoir si la route est prise ou pas (change ca méthode de représentation en conséquence)
         self.color = color
 
-class City():
+    def represent(self):
+        """
+            Permet de representer graphiquement la route.
+        """
+        for site in self.sites :
+            site.represent()
+
+class City(Graphic_area):
+    """
+       Classe qui décrit une ville.
+
+       Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
+
+       Paramètres :
+              name(string)
+                Nom pour identifier la ville dans le programme.
+
+              position(int,int)
+                Position en pourcentage de la ville, par exemple, (0.5,0.5) place la ville au milieu.
+
+              scale(float)
+                Multiplicateur de taille d'affichage.
+
+              image(string)
+                Chemin vers le fichier image qui représente la ville.
+   """
+
+    def __init__(self,name,position,scale = 1.0,image = "Resources\City.png"):
+        """
+           Créer une ville avec un nom, son image et sa position.
+       """
+        super().__init__(copy.deepcopy(position), scale, image)
+        self.name = name
+
+class Wagon(Graphic_area):
     #seulement pour partie graphique
     pass
 
-class Wagon():
-    #seulement pour partie graphique
-    pass
-
-class Button(Click_area):
+class Button(Graphic_area):
     #seulement pour partie graphique
     #Ajouter variable group pour savoir à quel groupe appartient le bouton (utile pour selection graphique d'un emplacement wagon par joueur)
     pass

@@ -55,3 +55,17 @@ def delete_cards(player,color,amount,pioche):
             player.wagon_cards.draw(1,pioche,i-deleted)
             deleted += 1
     i += 1
+
+def check_all_event(event,objects):
+    """
+        Vérifie si l'utilisateur place sa souris sur les zone ou clique sur les zones des objets mis en paramètre
+
+        Paramètres :
+            event(Object Pygame.event)
+                Action réalisée par l'utilisateur à analyser.
+
+            object(numpy.Array(Object))
+                Objets pour lesquelles on veut vérifier si il y a une intéraction avec la souris
+    """
+    for object in objects :
+        object.check_event(event)
