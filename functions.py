@@ -6,7 +6,7 @@ def player_wagon_cards(player):
     Penser à utiliser uniquement la liste de ses cartes wagons
     Penser à bien garder le même orde des couleurs que dans la class player pour le return
     """
-    pass
+    return {}
 
 def check_real_roads(player,new_road):
     """
@@ -69,3 +69,13 @@ def check_all_event(event,objects):
     """
     for object in objects :
         object.check_event(event)
+
+def Update_Objects(player,board):
+    #fonction qui va update tout
+
+    #Update des boutons indiquant le nombre de cartes wagons du joueur
+    i = 0
+    colors = player_wagon_cards(player)
+    for color in colors :
+        board.buttons[i].texte = colors[color] #indice doit correspondre aux boutons dans le même orde
+        i+=1

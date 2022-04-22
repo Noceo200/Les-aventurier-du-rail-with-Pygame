@@ -4,16 +4,19 @@ import pygame
 
 class Graphic_area():
 
-    def __init__(self,position,scale,image):
+    def __init__(self,position,scale,image,convert = False,center = False,texte = ""):
 
         self.position = position
         self.image = image
         self.scale = scale
         self.passed = False #variable pour gestion evennements
+        self.texte = texte #texte à mettre sur l'image
+        self.center = center
 
-        #Chargement de l'image
+        #Chargement de l'image et conversion en jpeg si nécessaire
         image = pygame.image.load(self.image)
-        image = image.convert()
+        if convert == True:
+            image= image.convert()
         #Determination de la position en pixels
         self.x = int(self.position[0] * pygame.display.Info().current_w)
         self.y = int(self.position[1] * pygame.display.Info().current_h)
@@ -21,17 +24,24 @@ class Graphic_area():
         self.reso = image.get_width()/image.get_height()
         perso_heigth = pygame.display.Info().current_h*self.scale
         self.image = pygame.transform.scale(image, (int(perso_heigth*self.reso), int(perso_heigth)))
+        # Centrage position
+        if self.center == True :
+            self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
+        #initialisation zone de texte
+        if self.texte != "":
+            police = pygame.font.SysFont("Monospace", 30, bold=True)
+            self.texte = police.render(self.texte, 1, (0, 0, 0))
 
     def represent(self):
         """
             Représente graphiquement la pioche sur le plateau.
         """
-        # Mise à l'échelle de l'affichage
-        perso_heigth = pygame.display.Info().current_h * self.scale
-        self.image = pygame.transform.scale(self.image, (int(perso_heigth * self.reso), int(perso_heigth)))
         #Affichage
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
+        if self.texte != "":
+            display_surface.blit(self.texte, (int(self.x + (self.image.get_width()/2) - (self.texte.get_width()/2)), int(self.y + self.image.get_height()/2 - (self.texte.get_height()/2)))) #on place le texte au centre de l'image
+
 
     def check_event(self,event):
         """
@@ -99,7 +109,7 @@ class Card(Graphic_area):
             image = "Resources\Card_"+color+".png"
         elif type == "destination":
             image = "Resources\Card_ville0_ville1.png"
-        super().__init__(copy.deepcopy(position), scale, image)
+        super().__init__(copy.deepcopy(position), scale, image,True)
         self.type = type
         self.color = color
         self.destination = destination
@@ -122,13 +132,13 @@ class Draw_pile(Graphic_area):
                 Multiplicateur de taille d'affichage.
 
             image(string)
-                Chemin vers le fichier image qui représente l'objet'.
+                Chemin vers le fichier image qui représente l'objet.
     """
     def __init__(self,cards,position = (0,0),scale = 1,image = "Resources\Default_pioche.png"):
         """
             Créer un paquet de cartes avec les cartes choisis.
         """
-        super().__init__(copy.deepcopy(position),scale,image)
+        super().__init__(copy.deepcopy(position),scale,image,True)
         self.cards = cards #Donne accès directement à la variable global cards du programme principale
 
     def mix(self):
@@ -370,6 +380,9 @@ class Board():
             roads(numpy.Array(Object.Road))
                 Routes présente dans le jeu.
 
+            buttons(numpy.Array(Object.Button))
+                Boutons présents sur le plateau.
+
             display_surface(Object Pygame.Surface)
                 Zone d'affichage du plateau.
 
@@ -377,7 +390,7 @@ class Board():
                 Chemin vers le fichier image qui représente l'objet'.
     """
 
-    def __init__(self,destination_pile,wagon_pile,cities,roads,display_surface,image = 'Resources\Map.png'):
+    def __init__(self,destination_pile,wagon_pile,cities,roads,buttons,display_surface,image = 'Resources\Map.png'):
         """
             Créer un plateau avec les pioches.
         """
@@ -385,6 +398,7 @@ class Board():
         self.wagon_pile = wagon_pile
         self.cities = cities
         self.roads = roads
+        self.buttons = buttons
         self.display_surface = display_surface
         self.image = image
 
@@ -409,6 +423,10 @@ class Board():
         #Affichage routes
         for road in self.roads:
             road.represent()
+
+        #Affichage des boutons
+        for button in self.buttons:
+            button.represent()
 
 class Road():
     """
@@ -470,16 +488,101 @@ class City(Graphic_area):
         super().__init__(copy.deepcopy(position), scale, image)
         self.name = name
 
-class Wagon(Graphic_area):
-    #seulement pour partie graphique
-    pass
-
 class Button(Graphic_area):
-    #seulement pour partie graphique
-    #Ajouter variable group pour savoir à quel groupe appartient le bouton (utile pour selection graphique d'un emplacement wagon par joueur)
-    pass
+    """
+        Créer un objet de type boutton qui sera interactif.
+
+        Paramètres :
+            position(int,int)
+                Position graphique en pourcentage, par exemple, (0.5,0.5) place l'objet au milieu.
+
+            scale(float)
+                Multiplicateur de taille d'affichage.
+
+            image(string)
+                Chemin vers le fichier image qui représente l'objet.
+
+            texte(string)
+                Texte à afficher lorsque la souris passe dessus.
+
+            color(string)
+                Couleur de la zone intéractive (Pour les emplacements de wagons).
+
+            convert(Bool)
+                Permet de convertir image en jpeg si besoin.
+
+            center(Bool)
+                Permet de centrer l'image si besoin.
+    """
+    def __init__(self,position,scale = 1.0,image = "Resources\default_button.png",texte = "",color="None",convert = False,center = False):
+
+        self.color = color
+        self.free = True #pour savoir si l'emplacement est libre
+        super().__init__(position, scale, image, convert, center,texte)
 
 class Group():
     #seulement pour partie graphique
     #permet que si joueur clique sur un des emplacement libre sur le plateau, on puisse accéder au groupe d'emplacements qui représente la route en question
     pass
+
+#///////POUBELLE//////////
+
+class Wagon(Graphic_area): #pas besoin car c'est bouton emplacement sui va juste changer d'image
+    """
+       Classe qui décrit un Wagon.
+
+       Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
+
+       Paramètres :
+              color(string)
+                Couleur du wagon.
+   """
+
+    def __init__(self, color, scale = 1.0):
+        """
+           Créer un wagon.
+       """
+
+        position = (0,0)
+        image = "Resources\Wagon_bleu_v.png" #valeur par défaut
+        super().__init__(copy.deepcopy(position), scale, image)
+        self.color = color
+
+    def place_wagon(self,sens,position):
+        """
+            Place un wagon sur le plateau.
+
+            Paramètres:
+                sens(bool)
+                    Défini le sens dans lequel représenter le wagon. (True = verticale, False = horizontale)
+
+                position(int,int)
+                    Position du wagon à placer.
+        """
+        if sens == True :
+            self.image = "Resources\Wagon_"+self.color+"_v.png"
+        else :
+            self.image = "Resources\Wagon_"+self.color+"_h.png"
+
+        self.position = position
+
+        self.represent()
+
+        def represent(self):
+            """
+                Surcharge de la méthode pour représenter un objet.
+            """
+            # Chargement de la bonne image à chaque fois qu'on appel la méthode
+            image = pygame.image.load(self.image)
+            # Determination de la position en pixels
+            self.x = self.position[0]
+            self.y = self.position[1]
+            # Mise à l'échelle de l'affichage
+            self.reso = image.get_width() / image.get_height()
+            # Mise à l'échelle de l'affichage
+            perso_heigth = pygame.display.Info().current_h * self.scale
+            self.image = pygame.transform.scale(image, (int(perso_heigth * self.reso), int(perso_heigth)))
+            # Affichage
+            display_surface = pygame.display.get_surface()
+            display_surface.blit(self.image, (self.x, self.y))
+
