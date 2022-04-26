@@ -4,31 +4,32 @@ import pygame
 
 class Graphic_area():
 
-    def __init__(self,position,scale,image,convert = False,center = False,texte = ""):
+    def __init__(self,position,scale,image,image2 = "",convert = False,center = False,texte = ""):
 
         self.position = position
-        self.image = image
+        self.path = image
+        self.image = pygame.image.load(self.path) #chargement de l'image
+        self.image2 = image2
         self.scale = scale
         self.passed = False #variable pour gestion evennements
         self.texte = texte #texte à mettre sur l'image
         self.center = center
 
-        #Chargement de l'image et conversion en jpeg si nécessaire
-        image = pygame.image.load(self.image)
+        #Conversion en jpeg de l'image si nécessaire
         if convert == True:
-            image= image.convert()
+            self.image= self.image.convert()
         #Determination de la position en pixels
         self.x = int(self.position[0] * pygame.display.Info().current_w)
         self.y = int(self.position[1] * pygame.display.Info().current_h)
         #Mise à l'échelle de l'affichage
-        self.reso = image.get_width()/image.get_height()
+        self.reso = self.image.get_width()/self.image.get_height()
         perso_heigth = pygame.display.Info().current_h*self.scale
-        self.image = pygame.transform.scale(image, (int(perso_heigth*self.reso), int(perso_heigth)))
+        self.image = pygame.transform.scale(self.image, (int(perso_heigth*self.reso), int(perso_heigth)))
         # Centrage position
         if self.center == True :
             self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
         #initialisation zone de texte
-        if self.texte != "":
+        if self.texte != "" and self.path == "Resources\default_button.png": #si le bouton a du texte et n'a pas d'image particulière, alors on affiche le texte sur l'image par defaut (sinon le texte sera afficher lors du passage de la souris sur le boutton)
             police = pygame.font.SysFont("Monospace", 30, bold=True)
             self.texte = police.render(self.texte, 1, (0, 0, 0))
 
@@ -39,9 +40,8 @@ class Graphic_area():
         #Affichage
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
-        if self.texte != "":
+        if self.texte != "" and self.path == "Resources\default_button.png": #donc si on a initialiser le texte pour le mettre au dessus de l'image
             display_surface.blit(self.texte, (int(self.x + (self.image.get_width()/2) - (self.texte.get_width()/2)), int(self.y + self.image.get_height()/2 - (self.texte.get_height()/2)))) #on place le texte au centre de l'image
-
 
     def check_event(self,event):
         """
@@ -65,7 +65,7 @@ class Graphic_area():
             if abs(event.pos[0] - center[0]) <= self.image.get_width()/2 and abs(event.pos[1] - center[1]) <= self.image.get_height()/2 :
                 self.mouse_click()
 
-    def mouse_pass(self,enter):
+    def mouse_pass(self,statut):
         """
             Action à éxecuter en cas de survol de la zone par la souris
 
@@ -73,10 +73,14 @@ class Graphic_area():
                 enter(bool)
                     Défini si on rentre ou si on sort de la zone
         """
-        if enter == True :
-            self.image.set_alpha(100)
+        if statut == True:
+            if self.texte == "" and self.image2 == "": #si on a bouton qui est cliquable, il devient transparent
+                self.image.set_alpha(100)
+            else :
+                pop_up(self.texte,button = self) #sinon, c'est un bouton qui doit afficher une pop up, on l'affiche
         else:
-            self.image.set_alpha(255)
+            if self.texte == "" and self.image2 == "":
+                self.image.set_alpha(255)
 
     def mouse_click(self):
         """
@@ -109,7 +113,7 @@ class Card(Graphic_area):
             image = "Resources\Card_"+color+".png"
         elif type == "destination":
             image = "Resources\Card_ville0_ville1.png"
-        super().__init__(copy.deepcopy(position), scale, image,True)
+        super().__init__(copy.deepcopy(position), scale, image,convert = True)
         self.type = type
         self.color = color
         self.destination = destination
@@ -138,7 +142,7 @@ class Draw_pile(Graphic_area):
         """
             Créer un paquet de cartes avec les cartes choisis.
         """
-        super().__init__(copy.deepcopy(position),scale,image,True)
+        super().__init__(copy.deepcopy(position),scale,image,convert = True)
         self.cards = cards #Donne accès directement à la variable global cards du programme principale
 
     def mix(self):
@@ -234,7 +238,7 @@ class Player():
                 self.draw_credit -= 2  # on retire deux crédits
                 pioche.draw(1, self.wagon_cards, -indice)
             elif pioche.cards[-indice].color == "tout" : #sinon si il peut pas piocher la locomotive
-                message("Vous ne pouvez pas piocher une locomotive après avoir piocher une première carte",5) #Affiche du message pendant 5s
+                #message("Vous ne pouvez pas piocher une locomotive après avoir piocher une première carte",5) #Affiche du message pendant 5s
                 pass
             else : #sinon si c'est une autre carte
                 self.draw_credit -= 1  # on retire un crédit
@@ -312,7 +316,8 @@ class Player():
                     joker_use = len(road.sites) - wagons_player[color_chose] #nombre de joker a utiliser
                     verif = True
                 else :
-                    message("Vous n'avez pas assez de wagons d'une même couleur, choisissez une autre route ou une autre action",4)
+                    pass
+                    #message("Vous n'avez pas assez de wagons d'une même couleur, choisissez une autre route ou une autre action",4)
             else : #sinon si c'est une route avec une couleur définie
                 if wagons_player[road.color] >= len(road.sites):
                     verif = True
@@ -320,9 +325,11 @@ class Player():
                     joker_use = len(road.sites) - wagons_player[color_chose]
                     verif = True
                 else :
-                    message("Vous n'avez pas assez de wagons "+str(road.color)+", il en faut "+str(len(road.sites)),4)
+                    pass
+                    #message("Vous n'avez pas assez de wagons "+str(road.color)+", il en faut "+str(len(road.sites)),4)
         elif verif == False :
-            message("Cette routes est déjà prise",2)
+            pass
+            #message("Cette routes est déjà prise",2)
 
         if verif == True:
             # PRISE DE LA ROUTE
@@ -331,8 +338,9 @@ class Player():
             self.wagons -= len(road.sites)
 
             #on défausse les cartes utilisées de son paquet
-            delete_cards(self,color_chose,len(road.sites)-joker_use,pioche)
-            delete_cards(self,"tout",joker_use,pioche)
+            """delete_cards(self,color_chose,len(road.sites)-joker_use,pioche)
+            delete_cards(self,"tout",joker_use,pioche)"""
+            #à envoyer dans pioche défausse de board
 
             road.taken = True
             check_real_roads(self, road)  # ajout et mise à jour des différentes villes reliées par le joueur
@@ -514,11 +522,11 @@ class Button(Graphic_area):
             center(Bool)
                 Permet de centrer l'image si besoin.
     """
-    def __init__(self,position,scale = 1.0,image = "Resources\default_button.png",texte = "",color="None",convert = False,center = False):
+    def __init__(self,position,scale = 1.0,image = "Resources\default_button.png",image2 = "",texte = "",color="None",convert = False,center = False):
 
         self.color = color
         self.free = True #pour savoir si l'emplacement est libre
-        super().__init__(position, scale, image, convert, center,texte)
+        super().__init__(position, scale, image, image2, convert, center,texte)
 
 class Group():
     #seulement pour partie graphique
