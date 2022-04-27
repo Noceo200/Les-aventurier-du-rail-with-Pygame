@@ -28,10 +28,6 @@ class Graphic_area():
         # Centrage position
         if self.center == True :
             self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
-        #initialisation zone de texte
-        if self.texte != "" and self.path == "Resources\default_button.png": #si le bouton a du texte et n'a pas d'image particulière, alors on affiche le texte sur l'image par defaut (sinon le texte sera afficher lors du passage de la souris sur le boutton)
-            police = pygame.font.SysFont("Monospace", 30, bold=True)
-            self.texte = police.render(self.texte, 1, (0, 0, 0))
 
     def represent(self):
         """
@@ -40,8 +36,10 @@ class Graphic_area():
         #Affichage
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
-        if self.texte != "" and self.path == "Resources\default_button.png": #donc si on a initialiser le texte pour le mettre au dessus de l'image
-            display_surface.blit(self.texte, (int(self.x + (self.image.get_width()/2) - (self.texte.get_width()/2)), int(self.y + self.image.get_height()/2 - (self.texte.get_height()/2)))) #on place le texte au centre de l'image
+        if self.texte != "" and (self.path == "Resources\default_button.png" or self.path == "Resources\instructions.png"): #donc si on a initialiser le texte pour le mettre au dessus de l'image
+            police = pygame.font.SysFont("Monospace", 30, bold=True)
+            texte_surface = police.render(self.texte, 1, (0, 0, 0))
+            display_surface.blit(texte_surface, (int(self.x + (self.image.get_width()/2) - (texte_surface.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte_surface.get_height()/2)))) #on place le texte au centre de l'image
 
     def check_event(self,event):
         """
@@ -423,10 +421,6 @@ class Board():
         #Affichage pioches
         self.destination_pile.represent()
         self.wagon_pile.represent()
-
-        #Affichage villes
-        for city in self.cities :
-            city.represent()
 
         #Affichage routes
         for road in self.roads:

@@ -7,7 +7,7 @@ def player_wagon_cards(player):
     Penser à utiliser uniquement la liste de ses cartes wagons
     Penser à bien garder le même orde des couleurs que dans la class player pour le return
     """
-    return {}
+    return {"rose": 1, "blanc": 2, "bleu": 3, "jaune": 4, "orange": 5, "noir": 6, "rouge": 7, "vert": 8, "tout": 9}
 
 def check_real_roads(player,new_road):
     """
@@ -80,7 +80,6 @@ def pop_up(texte,button,objects = np.array([])):
 
         pygame.display.update()
 
-
 def check_all_event(event,objects):
     """
         Vérifie si l'utilisateur place sa souris sur les zone ou clique sur les zones des objets mis en paramètre
@@ -103,8 +102,34 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     i = 0
     colors = player_wagon_cards(player)
     for color in colors :
-        board.buttons[i].texte = colors[color] #indice doit correspondre aux boutons dans le même orde
+        board.buttons[i].texte = str(colors[color]) #indice doit correspondre aux boutons dans le même ordre
         i+=1
+
+    #mise à jour des boutons qui affichent du texte, respecter ordre
+    board.buttons[i].texte = '0'
+    i += 1
+    board.buttons[i].texte = '0'
+    i += 1
+    board.buttons[i].texte = '0'
+    i += 1
+    board.buttons[i].texte = '0'
+    i += 1
+    board.buttons[i].texte = '0'
+
+def show_visible_wagon(pioche):
+
+    pioche.cards[0].position = (0.94, 0.15)
+    pioche.cards[1].position = (0.83, 0.15)
+    pioche.cards[2].position = (0.83, 0.29)
+    pioche.cards[3].position = (0.94, 0.29)
+    pioche.cards[4].position = (0.94, 0.42)
+
+    for i in range(5):
+        pioche.cards[i].center = True
+        pioche.cards[i].scale = 0.11
+
+    for i in range(5):
+        pioche.cards[i].represent()
 
 
 #/////POUBELLE/////
