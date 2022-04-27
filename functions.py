@@ -19,7 +19,7 @@ def check_real_roads(player,new_road):
     """
     pass
 
-def pop_up(texte,button,objects = np.array([])):
+def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
     #affiche une fenetre pop up avec un message et la liste des objets étaler grace à leur .represent à des positions différentes
     #attend que l'utilisateur clique sur les objets étalers puis return l'objet choisi
     #penser à changer le status du joueur quand j'utilise ca pour que les objets ne soit pas cliquable comme d'habitude, ils doivent se renvoyer eux-mêmes à la place.
@@ -32,10 +32,34 @@ def pop_up(texte,button,objects = np.array([])):
         image = pygame.image.load("Resources\pop_up.png")
     display_surface = pygame.display.get_surface()
     # Taille de l'affichage (dépend de la taille du texte et des objets)
-    #////ajout petit calcul en prenant hauteur premier objet et nombre de saut de ligne du texte
     perso_heigth = 400 #hauteur variable en fonction du message
     perso_widht = 800 #largeur fixe
+    positions = []
+    if len(objects) == 2 :
+        perso_heigth = 340  # hauteur variable en fonction du message
+        perso_widht = 800  # largeur fixe
+        positions = [(0.45, 0.5), (0.55, 0.5)]
+    elif len(objects) >0 and len(objects)<=3:
+        perso_heigth = 340  # hauteur variable en fonction du message
+        perso_widht = 800  # largeur fixe
+        positions = [(0.5, 0.5), (0.4, 0.5), (0.6, 0.5)]
+    elif len(objects) >3 and len(objects)<=6:
+        perso_heigth = 570
+        perso_widht = 800
+        positions = [(0.4, 0.36), (0.5, 0.36),(0.6, 0.36),
+                     (0.4, 0.59), (0.5, 0.59), (0.6, 0.59)]
+    elif len(objects) >6 and len(objects)<=9:
+        perso_heigth = 800  # hauteur variable en fonction du message
+        perso_widht = 800  # largeur fixe
+        positions = [(0.4, 0.23), (0.5, 0.23), (0.6, 0.23),
+                     (0.4, 0.46), (0.5, 0.46), (0.6, 0.46),
+                     (0.4, 0.69), (0.5, 0.69), (0.6, 0.69)]
+    elif len(objects) > 9 :
+        print("Trop d'objets a afficher")
+        objects = objects[0:9] #securiter pour pas dépasser en indices
+
     image = pygame.transform.scale(image, (perso_widht, int(perso_heigth)))
+
     # Centrage de la la position de la fenetre
     x = int(0.5 * pygame.display.Info().current_w)
     y = int(0.5 * pygame.display.Info().current_h)
@@ -46,6 +70,27 @@ def pop_up(texte,button,objects = np.array([])):
     texte = police.render(texte, 1, (0, 0, 0))
 
     end = False
+    choice = 0
+
+    # Ajout d'un bouton retour si besoin
+    image2 = ""
+    x2 = 0
+    y2 = 0
+    statut = False
+    if allow_return == True:
+        image2 = pygame.image.load("Resources\quit.png")
+        image2 = image2.convert()
+        image2 = pygame.transform.scale(image2, (int(50*1.49), 50))
+        x2 = x + int(image2.get_width()/2.4)
+        y2 = y
+
+    # initialisation des éléments/Objets si besoin
+    if len(objects) != 0:
+        for i in range(len(objects)):
+            objects[i].changed = True
+            objects[i].position = positions[i]
+            objects[i].scale = 0.22
+            objects[i].center = True
 
     while end == False:
 
@@ -57,7 +102,12 @@ def pop_up(texte,button,objects = np.array([])):
             display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),y + 10))
 
             #Affichage des éléments/Objets
-            pass
+            for object in objects:
+                object.represent()
+
+            #Affichage du bouton retour si besoin
+            if allow_return == True:
+                display_surface.blit(image2, (x2,y2))
 
         else : #sinon si on est dans le cas ou on affiche simplement l'image de fond à l'utilisateur
             # Affichage du fond
@@ -70,15 +120,45 @@ def pop_up(texte,button,objects = np.array([])):
                 pygame.quit()
                 quit()
             if event.type == pygame.MOUSEMOTION:
-                if button.position != (0,0): #on vérifie qu'on a bien un boutton en paramètre
+                if button.position != (0,0): #on vérifie qu'on a bien un boutton en paramètre, on agir que si c'est pas un bouton en (0,0) indiquant qu'il ne faut pas faire d'action
                     center = (button.x + button.image.get_width() / 2, button.y + button.image.get_height() / 2)
                     if abs(event.pos[0]-center[0]) > button.image.get_width()/2 or abs(event.pos[1] - center[1]) > button.image.get_height()/2 : #on vérifie que l'utilisateur n'est plus sur le bouton
                         end = True
+
+                if allow_return == True: #verification passage de la souris sur le bouton return
+                    check = get_pass_and_click(x2,y2,image2,event)
+                    if check == "pass":
+                        if statut == False:
+                            image2.set_alpha(100)
+                            statut = True
+                    else:
+                        if statut == True:
+                            image2.set_alpha(255)
+                            statut = False
+
             if event.type == pygame.MOUSEBUTTONUP:
-                #vérifier si il choisi un objet,
-                pass
+                #vérifier si il choisi un objet ou si il fait retour
+
+                if allow_return == True: #verification retour
+                    check = get_pass_and_click(x2,y2,image2,event)
+                    if check == "click":
+                        choice = -1
+                        end = True
+
+
 
         pygame.display.update()
+
+    return choice
+
+def get_pass_and_click(x,y,surface,event):
+    center = (x+int(surface.get_width() / 2), y+int(surface.get_height() / 2))  # position centrale de l'object
+    if event.type == pygame.MOUSEMOTION:
+        if abs(event.pos[0] - center[0]) <= surface.get_width() / 2 and abs(event.pos[1] - center[1]) <= surface.get_height() / 2:
+            return "pass"
+    if event.type == pygame.MOUSEBUTTONUP:
+        if abs(event.pos[0] - center[0]) <= surface.get_width() / 2 and abs(event.pos[1] - center[1]) <= surface.get_height() / 2:
+            return "click"
 
 def check_all_event(event,objects):
     """
@@ -113,24 +193,25 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     board.buttons[i].texte = '0'
     i += 1
     board.buttons[i].texte = '0'
-    i += 1
-    board.buttons[i].texte = '0'
 
-def show_visible_wagon(pioche):
+def show_visible_wagon(pioche,liste):
 
-    pioche.cards[0].position = (0.94, 0.15)
-    pioche.cards[1].position = (0.83, 0.15)
+    pioche.cards[0].position = (0.83, 0.16)
+    pioche.cards[1].position = (0.935, 0.16)
     pioche.cards[2].position = (0.83, 0.29)
-    pioche.cards[3].position = (0.94, 0.29)
-    pioche.cards[4].position = (0.94, 0.42)
+    pioche.cards[3].position = (0.935, 0.29)
+    pioche.cards[4].position = (0.935, 0.42)
 
     for i in range(5):
         pioche.cards[i].center = True
-        pioche.cards[i].scale = 0.11
+        pioche.cards[i].scale = 0.13
 
     for i in range(5):
-        pioche.cards[i].represent()
+        liste = np.delete(liste,-1)
 
+    for i in range(5):
+        liste = np.append(liste,pioche.cards[i])
+        pioche.cards[i].changed = True
 
 #/////POUBELLE/////
 def delete_cards(player,color,amount,pioche): #déjà fait en tant que méthode ?

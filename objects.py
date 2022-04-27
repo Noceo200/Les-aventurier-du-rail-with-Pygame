@@ -1,10 +1,13 @@
 import copy
+
+import numpy as np
+
 from functions import *
 import pygame
 
 class Graphic_area():
 
-    def __init__(self,position,scale,image,image2 = "",convert = False,center = False,texte = ""):
+    def __init__(self,position,scale,image,image2 = "",convert = False,center = False,texte = "",sens = 0):
 
         self.position = position
         self.path = image
@@ -14,6 +17,7 @@ class Graphic_area():
         self.passed = False #variable pour gestion evennements
         self.texte = texte #texte à mettre sur l'image
         self.center = center
+        self.sens = sens
 
         #Conversion en jpeg de l'image si nécessaire
         if convert == True:
@@ -25,6 +29,8 @@ class Graphic_area():
         self.reso = self.image.get_width()/self.image.get_height()
         perso_heigth = pygame.display.Info().current_h*self.scale
         self.image = pygame.transform.scale(self.image, (int(perso_heigth*self.reso), int(perso_heigth)))
+        # Initialisation du sens de l'image
+        self.image = pygame.transform.rotate(self.image, self.sens)
         # Centrage position
         if self.center == True :
             self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
@@ -102,7 +108,7 @@ class Card(Graphic_area):
             destination(string,string) (Seulement pour les cartes de type destination)
                 ("Ville1","Ville2").
     """
-    def __init__(self,type, color = "None", destination = ("None","None"),position = (0,0),scale=1):
+    def __init__(self,type, color = "None", destination = ("None","None"),position = (0,0),scale=1,convert = True):
         """
             Créer une carte avec le type et la couleur voulu ou la destination voulu.
         """
@@ -111,10 +117,32 @@ class Card(Graphic_area):
             image = "Resources\Card_"+color+".png"
         elif type == "destination":
             image = "Resources\Card_ville0_ville1.png"
-        super().__init__(copy.deepcopy(position), scale, image,convert = True)
+        super().__init__(copy.deepcopy(position), scale, image,convert = convert)
         self.type = type
         self.color = color
         self.destination = destination
+        self.changed = False
+
+    def represent(self):
+        """
+            Représente graphiquement la carte sur le plateau.
+        """
+        if self.changed == True:
+            #Determination de la position en pixels
+            self.x = int(self.position[0] * pygame.display.Info().current_w)
+            self.y = int(self.position[1] * pygame.display.Info().current_h)
+            #Mise à l'échelle de l'affichage
+            self.reso = self.image.get_width()/self.image.get_height()
+            perso_heigth = pygame.display.Info().current_h*self.scale
+            self.image = pygame.transform.scale(self.image, (int(perso_heigth*self.reso), int(perso_heigth)))
+            # Centrage position
+            if self.center == True :
+                self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
+            self.changed = False
+
+        #Affichage
+        display_surface = pygame.display.get_surface()
+        display_surface.blit(self.image, (self.x, self.y))
 
 class Draw_pile(Graphic_area):
     """
@@ -380,9 +408,6 @@ class Board():
             wagon_pile(Object.Draw_pile)
                 Pioche pour les cartes wagon.
 
-            cities(numpy.Array(Object.City))
-                Villes présentent dans le jeu.
-
             roads(numpy.Array(Object.Road))
                 Routes présente dans le jeu.
 
@@ -396,13 +421,12 @@ class Board():
                 Chemin vers le fichier image qui représente l'objet'.
     """
 
-    def __init__(self,destination_pile,wagon_pile,cities,roads,buttons,display_surface,image = 'Resources\Map.png'):
+    def __init__(self,destination_pile,wagon_pile,roads,buttons,display_surface,image = 'Resources\Map.png'):
         """
             Créer un plateau avec les pioches.
         """
         self.destination_pile = destination_pile
         self.wagon_pile = wagon_pile
-        self.cities = cities
         self.roads = roads
         self.buttons = buttons
         self.display_surface = display_surface
@@ -421,6 +445,10 @@ class Board():
         #Affichage pioches
         self.destination_pile.represent()
         self.wagon_pile.represent()
+
+        #Affichage des cartes visibles
+        for i in range(5):
+            self.wagon_pile.cards[i].represent()
 
         #Affichage routes
         for road in self.roads:
@@ -447,9 +475,9 @@ class Road():
                  Couleur de la route. ("rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout")
     """
 
-    def __init__(self,cities,sites,color):
+    def __init__(self,cities,color,sites = np.array([])):
         """
-            Créer une route qui relie les deux villes donnés en paramètre
+            Créer une route qui relie les deux villes données en paramètre
         """
         self.cities = cities
         self.sites = sites
@@ -462,33 +490,6 @@ class Road():
         """
         for site in self.sites :
             site.represent()
-
-class City(Graphic_area):
-    """
-       Classe qui décrit une ville.
-
-       Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
-
-       Paramètres :
-              name(string)
-                Nom pour identifier la ville dans le programme.
-
-              position(int,int)
-                Position en pourcentage de la ville, par exemple, (0.5,0.5) place la ville au milieu.
-
-              scale(float)
-                Multiplicateur de taille d'affichage.
-
-              image(string)
-                Chemin vers le fichier image qui représente la ville.
-   """
-
-    def __init__(self,name,position,scale = 1.0,image = "Resources\City.png"):
-        """
-           Créer une ville avec un nom, son image et sa position.
-       """
-        super().__init__(copy.deepcopy(position), scale, image)
-        self.name = name
 
 class Button(Graphic_area):
     """
@@ -516,20 +517,20 @@ class Button(Graphic_area):
             center(Bool)
                 Permet de centrer l'image si besoin.
     """
-    def __init__(self,position,scale = 1.0,image = "Resources\default_button.png",image2 = "",texte = "",color="None",convert = False,center = False):
+    def __init__(self,position,scale = 1.0,image = "Resources\default_button.png",image2 = "",texte = "",color="None",convert = False,center = False, player = ""):
 
         self.color = color
         self.free = True #pour savoir si l'emplacement est libre
         super().__init__(position, scale, image, image2, convert, center,texte)
+        self.player = player
 
-class Group():
-    #seulement pour partie graphique
-    #permet que si joueur clique sur un des emplacement libre sur le plateau, on puisse accéder au groupe d'emplacements qui représente la route en question
-    pass
+    def mouse_click(self):
+        if self.player != "":
+            texte = "Vos cartes destinations :"
+            objects = self.player.destination_cards
+            pop_up(texte, objects=objects, button=Button((0, 0)),choice = False,allow_return = True)
 
-#///////POUBELLE//////////
-
-class Wagon(Graphic_area): #pas besoin car c'est bouton emplacement sui va juste changer d'image
+class Wagon(Graphic_area):
     """
        Classe qui décrit un Wagon.
 
@@ -540,17 +541,19 @@ class Wagon(Graphic_area): #pas besoin car c'est bouton emplacement sui va juste
                 Couleur du wagon.
    """
 
-    def __init__(self, color, scale = 1.0):
+    def __init__(self, position, color, sens, road, scale = 1.0, convert = True,center = False):
         """
            Créer un wagon.
        """
-
-        position = (0,0)
-        image = "Resources\Wagon_bleu_v.png" #valeur par défaut
-        super().__init__(copy.deepcopy(position), scale, image)
+        image = "Resources\Wagon_"+color+".png" #valeur par défaut
+        super().__init__(position, scale, image, sens = sens, convert = convert, center = center)
+        self.image.set_alpha(150)
         self.color = color
+        self.taken = False
+        self.road = road
+        self.road.sites = np.append(road.sites,[self])
 
-    def place_wagon(self,sens,position):
+    def place_wagon(self):
         """
             Place un wagon sur le plateau.
 
@@ -561,30 +564,72 @@ class Wagon(Graphic_area): #pas besoin car c'est bouton emplacement sui va juste
                 position(int,int)
                     Position du wagon à placer.
         """
-        if sens == True :
-            self.image = "Resources\Wagon_"+self.color+"_v.png"
-        else :
-            self.image = "Resources\Wagon_"+self.color+"_h.png"
-
-        self.position = position
-
+        self.path = "Resources\Wagon_"+self.color+"_2.png"
         self.represent()
+        self.taken = True
 
-        def represent(self):
-            """
-                Surcharge de la méthode pour représenter un objet.
-            """
-            # Chargement de la bonne image à chaque fois qu'on appel la méthode
-            image = pygame.image.load(self.image)
-            # Determination de la position en pixels
-            self.x = self.position[0]
-            self.y = self.position[1]
-            # Mise à l'échelle de l'affichage
-            self.reso = image.get_width() / image.get_height()
-            # Mise à l'échelle de l'affichage
+    def represent(self):
+        """
+            Représente graphiquement la pioche sur le plateau.
+        """
+
+        if self.path != "Resources\Wagon_"+self.color+".png" and self.taken == False:
+            self.image = pygame.image.load(self.path)
             perso_heigth = pygame.display.Info().current_h * self.scale
-            self.image = pygame.transform.scale(image, (int(perso_heigth * self.reso), int(perso_heigth)))
-            # Affichage
-            display_surface = pygame.display.get_surface()
-            display_surface.blit(self.image, (self.x, self.y))
+            self.image = pygame.transform.scale(self.image, (int(perso_heigth * self.reso), int(perso_heigth)))
+            self.image = pygame.transform.rotate(self.image, self.sens)
+        #Affichage
+        display_surface = pygame.display.get_surface()
+        display_surface.blit(self.image, (self.x, self.y))
 
+    def mouse_click(self):
+        """
+            Action à éxecuter en cas de clique dans la zone par la souris
+        """
+        for wagon in self.road.sites :
+            wagon.place_wagon()
+
+    def mouse_pass(self,statut):
+        """
+            Action à éxecuter en cas de survol de la zone par la souris
+
+            Paramètres:
+                enter(bool)
+                    Défini si on rentre ou si on sort de la zone
+        """
+        if self.taken == False : #faire ca avec tout le groupe auquel appartient ce wagon
+            if statut == True:
+                for wagon in self.road.sites:
+                    wagon.image.set_alpha(255)
+            else:
+                for wagon in self.road.sites:
+                    wagon.image.set_alpha(170)
+
+#///////POUBELLE//////////
+
+class City(Graphic_area):
+    """
+       Classe qui décrit une ville.
+
+       Auteurs : NOEL Océan, LEVRIER-MUSSAT Gautier
+
+       Paramètres :
+              name(string)
+                Nom pour identifier la ville dans le programme.
+
+              position(int,int)
+                Position en pourcentage de la ville, par exemple, (0.5,0.5) place la ville au milieu.
+
+              scale(float)
+                Multiplicateur de taille d'affichage.
+
+              image(string)
+                Chemin vers le fichier image qui représente la ville.
+   """
+
+    def __init__(self,name,position,scale = 1.0,image = "Resources\City.png"):
+        """
+           Créer une ville avec un nom, son image et sa position.
+       """
+        super().__init__(copy.deepcopy(position), scale, image)
+        self.name = name
