@@ -32,25 +32,21 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
         image = pygame.image.load("Resources\pop_up.png")
     display_surface = pygame.display.get_surface()
     # Taille de l'affichage (dépend de la taille du texte et des objets)
-    perso_heigth = 400 #hauteur variable en fonction du message
-    perso_widht = 800 #largeur fixe
+    perso_heigth = int(pygame.display.Info().current_h/2.325)
+    perso_widht = int(pygame.display.Info().current_w/2.078)
     positions = []
     if len(objects) == 2 :
-        perso_heigth = 340  # hauteur variable en fonction du message
-        perso_widht = 800  # largeur fixe
+        perso_heigth = int(pygame.display.Info().current_h/2.735)  # hauteur variable en fonction du message
         positions = [(0.45, 0.5), (0.55, 0.5)]
     elif len(objects) >0 and len(objects)<=3:
-        perso_heigth = 340  # hauteur variable en fonction du message
-        perso_widht = 800  # largeur fixe
+        perso_heigth = int(pygame.display.Info().current_h/2.735)  # hauteur variable en fonction du message
         positions = [(0.5, 0.5), (0.4, 0.5), (0.6, 0.5)]
     elif len(objects) >3 and len(objects)<=6:
-        perso_heigth = 570
-        perso_widht = 800
+        perso_heigth = int(pygame.display.Info().current_h/1.631)
         positions = [(0.4, 0.36), (0.5, 0.36),(0.6, 0.36),
                      (0.4, 0.59), (0.5, 0.59), (0.6, 0.59)]
     elif len(objects) >6 and len(objects)<=9:
-        perso_heigth = 800  # hauteur variable en fonction du message
-        perso_widht = 800  # largeur fixe
+        perso_heigth = int(pygame.display.Info().current_h/1.162) # hauteur variable en fonction du message
         positions = [(0.4, 0.23), (0.5, 0.23), (0.6, 0.23),
                      (0.4, 0.46), (0.5, 0.46), (0.6, 0.46),
                      (0.4, 0.69), (0.5, 0.69), (0.6, 0.69)]
@@ -66,7 +62,8 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
     x, y = (int(x - image.get_width() / 2), int(y - image.get_height() / 2))
 
     # initialisation du texte
-    police = pygame.font.SysFont("Monospace", 30, bold=True)
+    l = int(pygame.display.Info().current_h/32.6)
+    police = pygame.font.SysFont("Monospace", l, bold=True)
     texte = police.render(texte, 1, (0, 0, 0))
 
     end = False
@@ -80,7 +77,8 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
     if allow_return == True:
         image2 = pygame.image.load("Resources\quit.png")
         image2 = image2.convert()
-        image2 = pygame.transform.scale(image2, (int(50*1.49), 50))
+        h = int(pygame.display.Info().current_h /16)
+        image2 = pygame.transform.scale(image2, (int(h*1.49), h))
         x2 = x + int(image2.get_width()/2.4)
         y2 = y
 
@@ -99,7 +97,7 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
             display_surface.blit(image, (x, y))
 
             #Affichage du texte en haut au centre de la fenetre
-            display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),y + 10))
+            display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),y + int(pygame.display.Info().current_h / 80)))
 
             #Affichage des éléments/Objets
             for object in objects:
@@ -188,11 +186,11 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     #mise à jour des boutons qui affichent du texte, respecter ordre
     board.buttons[i].texte = '0'
     i += 1
-    board.buttons[i].texte = '0'
+    board.buttons[i].texte = '45'
     i += 1
     board.buttons[i].texte = '0'
     i += 1
-    board.buttons[i].texte = '0'
+    board.buttons[i].texte = '45'
 
 def show_visible_wagon(pioche,liste):
 

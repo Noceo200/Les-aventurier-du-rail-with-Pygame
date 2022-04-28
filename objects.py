@@ -43,7 +43,8 @@ class Graphic_area():
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
         if self.texte != "" and (self.path == "Resources\default_button.png" or self.path == "Resources\instructions.png"): #donc si on a initialiser le texte pour le mettre au dessus de l'image
-            police = pygame.font.SysFont("Monospace", 30, bold=True)
+            l = int(pygame.display.Info().current_h / 32.6)
+            police = pygame.font.SysFont("Monospace", l, bold=True)
             texte_surface = police.render(self.texte, 1, (0, 0, 0))
             display_surface.blit(texte_surface, (int(self.x + (self.image.get_width()/2) - (texte_surface.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte_surface.get_height()/2)))) #on place le texte au centre de l'image
 
