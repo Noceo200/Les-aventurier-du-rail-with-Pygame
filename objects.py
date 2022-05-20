@@ -542,17 +542,17 @@ class Wagon(Graphic_area):
                 Couleur du wagon.
    """
 
-    def __init__(self, position, color, sens, road, scale = 1.0, convert = True,center = False):
+    def __init__(self, position, sens, road, scale = 1.0, convert = True,center = False):
         """
            Créer un wagon.
        """
-        image = "Resources\Wagon_"+color+".png" #valeur par défaut
-        super().__init__(position, scale, image, sens = sens, convert = convert, center = center)
-        self.image.set_alpha(150)
-        self.color = color
         self.taken = False
         self.road = road
-        self.road.sites = np.append(road.sites,[self])
+        self.color = road.color
+        image = "Resources\Wagon_" + self.color + ".png" #valeur par défaut
+        super().__init__(position, scale, image, sens=sens, convert=convert, center=center)
+        self.image.set_alpha(150)
+        self.road.sites = np.append(road.sites, [self])
 
     def place_wagon(self):
         """

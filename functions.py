@@ -194,6 +194,7 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
 
 def show_visible_wagon(pioche,liste):
 
+    #attribution des positions d'affichage des cartes à positonner
     pioche.cards[0].position = (0.83, 0.16)
     pioche.cards[1].position = (0.935, 0.16)
     pioche.cards[2].position = (0.83, 0.29)
@@ -204,6 +205,7 @@ def show_visible_wagon(pioche,liste):
         pioche.cards[i].center = True
         pioche.cards[i].scale = 0.13
 
+    #mise à jour de la liste d'objet interactif
     for i in range(5):
         liste = np.delete(liste,-1)
 
