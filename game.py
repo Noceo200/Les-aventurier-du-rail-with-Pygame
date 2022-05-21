@@ -1,11 +1,8 @@
-import numpy as np
-import copy
-
-from functions import *
 from objects import *
 
 #quand pioche principale = vide (donc quand il reste 6 cartes) il faut mélanger les cartes dans la défausse et les ajouter à la suite de ces 6 cartes
 #Empecher le joueur de piocher plus de 8 cartes destinations pour eviter problème affichage
+#ajout 2 type IA
 
 import pygame
 from screeninfo import get_monitors
@@ -160,17 +157,32 @@ wagon_cards = [Card("wagon",color = "rouge"),
                       Card("wagon",color = "blanc"),
                       Card("wagon",color = "tout"),
                       Card("wagon",color = "rouge"),
+                      Card("wagon",color = "noir"),
+                      Card("wagon",color = "blanc"),
+                      Card("wagon",color = "tout"),
+                      Card("wagon",color = "rouge"),
+                      Card("wagon",color = "noir"),
+                      Card("wagon",color = "blanc"),
+                      Card("wagon",color = "tout"),
+                      Card("wagon",color = "rouge"),
+                      Card("wagon",color = "noir"),
+                      Card("wagon",color = "rouge"),
                       Card("wagon",color = "noir")]
-
-#Création des pioches
-
-destination_pile = Draw_pile(wagon_cards,(0.865, 0.486),0.162,'Resources\Destination_pioche.png')
-
-wagon_pile = Draw_pile(wagon_cards,(0.783, 0.405),0.24)
 
 #Création du joueur
 
-player = Player("No_name","",wagon_pile,destination_cards[0:9]) #utiliser pop up pour proposer de choisir cartes
+player = Player("No_name")
+
+#Création des pioches
+
+destination_pile = Draw_pile(destination_cards,player,"destination_pile",(0.865, 0.486),0.162,'Resources\Destination_pioche.png')
+
+wagon_pile = Draw_pile(wagon_cards,player,"wagon_pile",(0.783, 0.405),0.24)
+
+#mise à jour du joueur
+
+player.wagon_cards = wagon_cards[0:1]
+player.destination_cards = destination_cards[0:9] #utiliser pop up pour proposer de choisir cartes
 
 #Création des autres boutons intéractifs
 
@@ -219,7 +231,7 @@ board = Board(destination_pile,wagon_pile,roads,buttons,display_surface,'Resourc
 
 #liste des objets intéractifs (qui nécessitent qu'on vérifie régulièrement si l'utilisateur intéragit avec)
 
-interactive_objects = np.array([destination_pile,
+interactive_objects = [destination_pile,
                                 wagon_pile,
                                 info1_button,
                                 info2_button,
@@ -236,13 +248,13 @@ interactive_objects = np.array([destination_pile,
                                 wagon_12_8, wagon_13_1, wagon_13_2, wagon_13_3, wagon_13_4, wagon_13_5, wagon_13_6,wagon_14_1, wagon_14_2, wagon_14_3, wagon_14_4,
                                 wagon_15_1, wagon_15_2, wagon_15_3, wagon_16_1, wagon_16_2, wagon_16_3, wagon_16_4,wagon_16_5, wagon_17_1, wagon_17_2,
                                 wagon_18_1,wagon_18_2, wagon_18_3, wagon_19_1, wagon_19_2, wagon_20_1, wagon_20_2, wagon_20_3,wagon_20_4, wagon_20_5, wagon_20_6,
-                                wagon_pile.cards[0],wagon_pile.cards[1],wagon_pile.cards[2],wagon_pile.cards[3],wagon_pile.cards[4]]) #les derniers éléments doivent etre les cartes de dessus de pioche
+                                wagon_pile.cards[0],wagon_pile.cards[1],wagon_pile.cards[2],wagon_pile.cards[3],wagon_pile.cards[4]] #les derniers éléments doivent etre les cartes de dessus de pioche
 
-show_visible_wagon(wagon_pile,interactive_objects) #première mise à jour des cartes wagons visibles
+show_visible_wagon(player,wagon_pile,interactive_objects) #première mise à jour des cartes wagons visibles
 
 while True :
 
-    Update_Objects("player", board) #mise à jour des variables des objets sur le plateau
+    Update_Objects(player, board) #mise à jour des variables des objets sur le plateau
     board.represent() #actualisation graphique du plateau
 
     for event in pygame.event.get(): #vérification des actions du joueur
@@ -253,6 +265,7 @@ while True :
             check_all_event(event,interactive_objects)
         if event.type == pygame.MOUSEBUTTONUP :
             check_all_event(event,interactive_objects)
+            show_visible_wagon(player, wagon_pile, interactive_objects) #mise à jour des cartes visibles
             print((round(event.pos[0]/screen_width,4),round(event.pos[1]/screen_height,4)))
 
     pygame.display.update()

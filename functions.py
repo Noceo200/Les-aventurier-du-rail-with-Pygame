@@ -19,7 +19,7 @@ def check_real_roads(player,new_road):
     """
     pass
 
-def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
+def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True):
     #affiche une fenetre pop up avec un message et la liste des objets étaler grace à leur .represent à des positions différentes
     #attend que l'utilisateur clique sur les objets étalers puis return l'objet choisi
     #penser à changer le status du joueur quand j'utilise ca pour que les objets ne soit pas cliquable comme d'habitude, ils doivent se renvoyer eux-mêmes à la place.
@@ -107,9 +107,16 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
             if allow_return == True:
                 display_surface.blit(image2, (x2,y2))
 
-        else : #sinon si on est dans le cas ou on affiche simplement l'image de fond à l'utilisateur
+        else : #sinon si on est dans le cas ou on affiche simplement l'image de fond à l'utilisateur avec le texte associé
             # Affichage du fond
             display_surface.blit(image, (x, y))
+
+            #Affichage du texte en haut au centre de la fenetre
+            display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),int(y + (image.get_height() / 2) - texte.get_height())))
+
+            #Affichage du bouton retour si besoin
+            if allow_return == True:
+                display_surface.blit(image2, (x2,y2))
 
         #condition d'arret pour fermer la pop-up : l'utilisateur choisi un objet, ou l'utilisateur retire sa souris du boutton dans le cas d'un boutton qui affiche juste une image
 
@@ -142,6 +149,12 @@ def pop_up(texte,button,objects = np.array([]),choice=True,allow_return = True):
                     if check == "click":
                         choice = -1
                         end = True
+
+                # Possibilité de choisir un des objets si besoin
+                if choices == True:
+                    #utiliser get_pass_and_click, faire des cartes carrés
+                    choice = 0 #indique qu'un choix à été fait
+                    end = True
 
 
 
@@ -184,33 +197,52 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
         i+=1
 
     #mise à jour des boutons qui affichent du texte, respecter ordre
-    board.buttons[i].texte = '0'
+    board.buttons[i].texte = str(player.draw_credit)
     i += 1
-    board.buttons[i].texte = '45'
+    board.buttons[i].texte = str(player.wagons)
     i += 1
     board.buttons[i].texte = '0'
     i += 1
     board.buttons[i].texte = '45'
 
-def show_visible_wagon(pioche,liste):
 
-    #attribution des positions d'affichage des cartes à positonner
+def show_visible_wagon(player,pioche,liste):
+
+    #attribution des paramètres nécessaires aux cartes visibles pour l'intéraction avec l'utilisateur
     pioche.cards[0].position = (0.83, 0.16)
     pioche.cards[1].position = (0.935, 0.16)
     pioche.cards[2].position = (0.83, 0.29)
     pioche.cards[3].position = (0.935, 0.29)
     pioche.cards[4].position = (0.935, 0.42)
 
+    pioche.cards[0].indice = 0
+    pioche.cards[1].indice = 1
+    pioche.cards[2].indice = 2
+    pioche.cards[3].indice = 3
+    pioche.cards[4].indice = 4
+
+    pioche.cards[0].player = player
+    pioche.cards[1].player = player
+    pioche.cards[2].player = player
+    pioche.cards[3].player = player
+    pioche.cards[4].player = player
+
+    pioche.cards[0].pioche = pioche
+    pioche.cards[1].pioche = pioche
+    pioche.cards[2].pioche = pioche
+    pioche.cards[3].pioche = pioche
+    pioche.cards[4].pioche = pioche
+
     for i in range(5):
         pioche.cards[i].center = True
         pioche.cards[i].scale = 0.13
 
     #mise à jour de la liste d'objet interactif
-    for i in range(5):
-        liste = np.delete(liste,-1)
 
     for i in range(5):
-        liste = np.append(liste,pioche.cards[i])
+        liste.pop(-1)
+    for i in range(5):
+        liste.append(pioche.cards[i])
         pioche.cards[i].changed = True
 
 #/////POUBELLE/////

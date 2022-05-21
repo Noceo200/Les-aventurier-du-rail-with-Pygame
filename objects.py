@@ -1,7 +1,4 @@
 import copy
-
-import numpy as np
-
 from functions import *
 import pygame
 
@@ -82,7 +79,7 @@ class Graphic_area():
             if self.texte == "" and self.image2 == "": #si on a bouton qui est cliquable, il devient transparent
                 self.image.set_alpha(100)
             else :
-                pop_up(self.texte,button = self) #sinon, c'est un bouton qui doit afficher une pop up, on l'affiche
+                pop_up(self.texte,button = self,allow_return=False) #sinon, c'est un bouton qui doit afficher une pop up, on l'affiche
         else:
             if self.texte == "" and self.image2 == "":
                 self.image.set_alpha(255)
@@ -109,7 +106,7 @@ class Card(Graphic_area):
             destination(string,string) (Seulement pour les cartes de type destination)
                 ("Ville1","Ville2").
     """
-    def __init__(self,type, color = "None", destination = ("None","None"),position = (0,0),scale=1,convert = True):
+    def __init__(self,type, player = "", pioche = "", color = "None", destination = ("None","None"),position = (0,0),scale=1,convert = True):
         """
             Créer une carte avec le type et la couleur voulu ou la destination voulu.
         """
@@ -123,6 +120,9 @@ class Card(Graphic_area):
         self.color = color
         self.destination = destination
         self.changed = False
+        self.indice = 0 #indice de position de la carte dans la pioche, vaut 0 par défaut mais mise à jour uniquement lorsque les cartes on besoin d'etre visibles
+        self.player = player #utile pour accéder aux pioches du joueur
+        self.pioche = pioche #utile pour accéder à la pioche à laquelle elle appartient
 
     def represent(self):
         """
@@ -133,7 +133,6 @@ class Card(Graphic_area):
             self.x = int(self.position[0] * pygame.display.Info().current_w)
             self.y = int(self.position[1] * pygame.display.Info().current_h)
             #Mise à l'échelle de l'affichage
-            self.reso = self.image.get_width()/self.image.get_height()
             perso_heigth = pygame.display.Info().current_h*self.scale
             self.image = pygame.transform.scale(self.image, (int(perso_heigth*self.reso), int(perso_heigth)))
             # Centrage position
@@ -144,6 +143,15 @@ class Card(Graphic_area):
         #Affichage
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
+
+    def mouse_click(self):
+        """
+            Action à éxecuter en cas de clique dans la zone par la souris
+        """
+        if self.type == "wagon":
+            self.player.draw_wagon(self.indice,self.pioche)
+        elif self.type == "destination" :
+            self.player.draw_destination(self.indice,self.pioche)
 
 class Draw_pile(Graphic_area):
     """
@@ -165,12 +173,15 @@ class Draw_pile(Graphic_area):
             image(string)
                 Chemin vers le fichier image qui représente l'objet.
     """
-    def __init__(self,cards,position = (0,0),scale = 1,image = "Resources\Default_pioche.png"):
+
+    def __init__(self,cards,player = "", type = "",position = (0,0),scale = 1,image = "Resources\Default_pioche.png"):
         """
             Créer un paquet de cartes avec les cartes choisis.
         """
         super().__init__(copy.deepcopy(position),scale,image,convert = True)
         self.cards = cards #Donne accès directement à la variable global cards du programme principale
+        self.type = type #variable utile seulement pour pioche wagons ou destinations
+        self.player = player #variable utile seulement pour pioche wagons ou destinations
 
     def mix(self):
         """
@@ -178,7 +189,7 @@ class Draw_pile(Graphic_area):
         """
         np.random.shuffle(self.cards)
 
-    def draw(self,amount,target,position = -1):
+    def draw(self,amount,target,position = 0):
         """
            Pioche le nombre de carte donné dans ce paquet de cartes et les ajoutes au paquet cible.
 
@@ -194,8 +205,28 @@ class Draw_pile(Graphic_area):
        """
 
         for i in range(amount):
-            target.cards = np.append(target.cards,self.cards[position])
+            target = np.append(target,self.cards[position])
             self.cards = np.delete(self.cards,position)
+
+    def mouse_click(self):
+        """
+            Action à éxecuter en cas de clique dans la zone par la souris
+        """
+        if self.type == "wagon_pile":
+            self.player.draw_wagon(5, self)
+        elif self.type == "destination_pile":
+            cards = self.cards[0:3]
+            choice = pop_up("Choisisssez une première carte", objects=cards, button=Button((0, 0)),choices = True,allow_return = True)
+            if choice != -1 : #si le joueur à fait un choix, il doit au moins en faire un deuxième
+                #self.player.draw_destination(choice,self)
+                print("1 card")
+                choice = pop_up("Choisisssez une deuxième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=False)
+                #self.player.draw_destination(choice, self)
+                print("2 cards")
+                choice = pop_up("Choisisssez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
+                if choice != -1:
+                    print("3 cards")
+                    #self.player.draw_destination(choice, self)
 
 class Player():
     """
@@ -216,7 +247,7 @@ class Player():
            destination_cards(Object.Draw_pile)
              Paquet de cartes destination du joueur.
     """
-    def __init__(self, name, pion, wagon_cards, destination_cards):
+    def __init__(self, name, pion = "", wagon_cards = "", destination_cards = ""):
         """
             Créer un joueur avec le nom donné et ses cartes.
         """
@@ -249,28 +280,27 @@ class Player():
             Paramètres :
             indice(int)
                 indice qui permet de choisir quelle carte il veut piocher :
-                - indice entre 1 et 5 => Le joueur veut piocher une des 5 cartes wagon face visible
-                - indice = 6 => Le joueur veut piocher dans la pioche (cartes face cachées)
+                - indice entre 0 et 4 => Le joueur veut piocher une des 4 cartes wagon face visible
+                - indice = 5 => Le joueur veut piocher dans la pioche (cartes face cachées)
 
             pioche(Object.Draw_pile)
                 paquet de cartes qui correspond à la pioche pour les cartes wagon
         """
 
-        if indice == 6 : #si le joueur pioche dans la pioche, il perd juste un crédit, et il ne peut plus piocher de locomotive face visible
+        if indice == 5 : #si le joueur pioche dans la pioche, il perd juste un crédit, et il ne peut plus piocher de locomotive face visible
             self.draw_credit -= 1 #on retire un crédit
             self.status = "drawing_wagon" #mise à jour du status du joueur
-            pioche.draw(1,self.wagon_cards,-indice) #on transfère la carte piocher vers les cartes du joueur
+            pioche.draw(1,self.wagon_cards,indice) #on transfère la carte piocher vers les cartes du joueur
         else :
-            if pioche.cards[-indice].color == "tout" and self.draw_credit > 1 : #si c'est une locomotive et que le joueur à le droit de la piocher
+            if pioche.cards[indice].color == "tout" and self.draw_credit > 1 : #si c'est une locomotive et que le joueur à le droit de la piocher
                 self.draw_credit -= 2  # on retire deux crédits
-                pioche.draw(1, self.wagon_cards, -indice)
-            elif pioche.cards[-indice].color == "tout" : #sinon si il peut pas piocher la locomotive
-                #message("Vous ne pouvez pas piocher une locomotive après avoir piocher une première carte",5) #Affiche du message pendant 5s
-                pass
+                pioche.draw(1, self.wagon_cards, indice)
+            elif pioche.cards[indice].color == "tout" : #sinon si il peut pas piocher la locomotive
+                pop_up("Vous n'avez pas assez de crédit.",Button((0, 0)))
             else : #sinon si c'est une autre carte
                 self.draw_credit -= 1  # on retire un crédit
                 self.status = "drawing_wagon"  # mise à jour du status du joueur
-                pioche.draw(1, self.wagon_cards, -indice)
+                pioche.draw(1, self.wagon_cards, indice)
 
         if self.draw_credit == 0: #si le joueur n'a plus de crédit c'est la fin de son tour
             self.status = "None"
@@ -292,7 +322,7 @@ class Player():
 
         self.draw_credit -= 1  # on retire un crédit de pioche
         self.status = "drawing_destination1"  # mise à jour du status du joueur
-        pioche.draw(1, self.destination_cards, -indice) #transfère la carte piochée de la pioche vers les cartes du joueur
+        pioche.draw(1, self.destination_cards, indice) #transfère la carte piochée de la pioche vers les cartes du joueur
 
         #Dans le programme principale le joueur peut de nouveau piocher ou peut arreter
 
@@ -529,7 +559,7 @@ class Button(Graphic_area):
         if self.player != "":
             texte = "Vos cartes destinations :"
             objects = self.player.destination_cards
-            pop_up(texte, objects=objects, button=Button((0, 0)),choice = False,allow_return = True)
+            pop_up(texte, objects=objects, button=Button((0, 0)),choices = False,allow_return = True)
 
 class Wagon(Graphic_area):
     """
