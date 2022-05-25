@@ -101,6 +101,12 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
                 objects[i].scale = 0.22
                 objects[i].center = True
 
+    #initialisation du cache de fond
+    if not (len(objects) !=0 and objects[0].type == "destination") : #on evite que le cache se rajoute plusieurs fois dans le cas du choix des cartes destinations
+        cache = pygame.Surface((pygame.display.Info().current_w, pygame.display.Info().current_h))
+        cache.set_alpha(128)
+        cache.fill((0, 0, 0))
+        display_surface.blit(cache, (0, 0))  # affichage du cache transparent
 
     while end == False:
 

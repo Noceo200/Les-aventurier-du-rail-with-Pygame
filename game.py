@@ -1,3 +1,7 @@
+import time
+
+import numpy as np
+
 from objects import *
 
 #quand pioche principale = vide (donc quand il reste 6 cartes) il faut mélanger les cartes dans la défausse et les ajouter à la suite de ces 6 cartes
@@ -17,9 +21,13 @@ pygame.init()
 display_surface = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Jeux du Train')
 
+#Création du joueur
+
+player = Player("No_name")
+
 #création des routes et leur wagons
 
-road_1 = Road(("ville1","ville2"),"gris")
+road_1 = Road(("ville1","ville2"),"noir",player)
 wagon_1_1 = Wagon((0.0230, 0.315) ,sens = -7,road=road_1,scale = 0.02)
 wagon_1_2 = Wagon((0.06, 0.327) ,sens = -5,road=road_1,scale = 0.02)
 wagon_1_3 = Wagon((0.7269, 0.258) ,sens = 0,road=road_1,scale = 0.02)
@@ -27,62 +35,62 @@ wagon_1_4 = Wagon((0.6890, 0.2613) ,sens = 0,road=road_1,scale = 0.02)
 wagon_1_5 = Wagon((0.6495, 0.262) ,sens = 9,road=road_1,scale = 0.02)
 wagon_1_6 = Wagon((0.6145, 0.277) ,sens = 18,road=road_1,scale = 0.02)
 
-road_2 = Road(("ville2","ville3"),"vert")
+road_2 = Road(("ville2","ville3"),"vert",player)
 wagon_2_1 = Wagon((0.108, 0.328),sens = 6,road=road_2,scale = 0.019)
 wagon_2_2 = Wagon((0.143, 0.327),sens = 5,road=road_2,scale = 0.019)
 wagon_2_3 = Wagon((0.1767, 0.321),sens = 9,road=road_2,scale = 0.018)
 
-road_3 = Road(("ville3","ville4"),"rouge")
+road_3 = Road(("ville3","ville4"),"rouge",player)
 wagon_3_1 = Wagon((0.102, 0.36) ,sens = 112,road=road_3,scale = 0.02)
 wagon_3_2 = Wagon((0.1152, 0.418) ,sens = 123,road=road_3,scale = 0.02)
 wagon_3_3 = Wagon((0.1385, 0.473) ,sens = 131,road=road_3,scale = 0.02)
 wagon_3_4 = Wagon((0.1648, 0.522) ,sens = 145,road=road_3,scale = 0.02)
 wagon_3_5 = Wagon((0.197, 0.56) ,sens = 149,road=road_3,scale = 0.02)
 
-road_4 = Road(("ville1","ville2"),"tout")
+road_4 = Road(("ville1","ville2"),"tout",player)
 wagon_4_1 = Wagon((0.2095, 0.335) ,sens = 100,road=road_4,scale = 0.02)
 wagon_4_2 = Wagon((0.215, 0.398) ,sens = 100,road=road_4,scale = 0.02)
 wagon_4_3 = Wagon((0.221, 0.459) ,sens = 100,road=road_4,scale = 0.02)
 wagon_4_4 = Wagon((0.2274, 0.521) ,sens = 100,road=road_4,scale = 0.02)
 
-road_5 = Road(("ville1","ville2"),"jaune")
+road_5 = Road(("ville1","ville2"),"jaune",player)
 wagon_5_1 = Wagon((0.2177, 0.305) ,sens = 9,road=road_5,scale = 0.02)
 wagon_5_2 = Wagon((0.2513, 0.294) ,sens = 10,road=road_5,scale = 0.019)
 wagon_5_3 = Wagon((0.2834, 0.285) ,sens = 10,road=road_5,scale = 0.019)
 wagon_5_4 = Wagon((0.3154, 0.271) ,sens = 10,road=road_5,scale = 0.019)
 
-road_6 = Road(("ville1","ville2"),"rose")
+road_6 = Road(("ville1","ville2"),"rose",player)
 wagon_6_1 = Wagon((0.24, 0.596) ,sens = -4,road=road_6,scale = 0.02)
 wagon_6_2 = Wagon((0.278, 0.593) ,sens = 8,road=road_6,scale = 0.02)
 wagon_6_3 = Wagon((0.3184, 0.5773) ,sens = 9,road=road_6,scale = 0.02)
 wagon_6_4 = Wagon((0.3579, 0.5627) ,sens = 11,road=road_6,scale = 0.02)
 
-road_7 = Road(("ville1","ville2"),"tout")
+road_7 = Road(("ville1","ville2"),"tout",player)
 wagon_7_1 = Wagon((0.241, 0.54) ,sens = 39,road=road_7,scale = 0.02)
 wagon_7_2 = Wagon((0.271, 0.505) ,sens = 31,road=road_7,scale = 0.02)
 wagon_7_3 = Wagon((0.3013, 0.471) ,sens = 30,road=road_7,scale = 0.02)
 wagon_7_4 = Wagon((0.336, 0.443) ,sens = 32,road=road_7,scale = 0.02)
 
-road_8 = Road(("ville1","ville2"),"orange")
+road_8 = Road(("ville1","ville2"),"orange",player)
 wagon_8_1 = Wagon((0.328, 0.281) ,sens = 46,road=road_8,scale = 0.02)
 wagon_8_2 = Wagon((0.3261, 0.34) ,sens = 95,road=road_8,scale = 0.02)
 wagon_8_3 = Wagon((0.3348, 0.402) ,sens = 145,road=road_8,scale = 0.019)
 
-road_9 = Road(("ville1","ville2"),"jaune")
+road_9 = Road(("ville1","ville2"),"jaune",player)
 wagon_9_1 = Wagon((0.3682, 0.4423) ,sens = 101,road=road_9,scale = 0.02)
 wagon_9_2 = Wagon((0.3766, 0.5035) ,sens = 110,road=road_9,scale = 0.019)
 
-road_10 = Road(("ville1","ville2"),"tout")
+road_10 = Road(("ville1","ville2"),"tout",player)
 wagon_10_1 = Wagon((0.358, 0.2445) ,sens = 14,road=road_10,scale = 0.02)
 wagon_10_2 = Wagon((0.392, 0.225) ,sens = 14,road=road_10,scale = 0.02)
 
-road_11 = Road(("ville1","ville2"),"rose")
+road_11 = Road(("ville1","ville2"),"rose",player)
 wagon_11_1 = Wagon((0.4243, 0.242) ,sens = 100,road=road_11,scale = 0.02)
 wagon_11_2 = Wagon((0.42, 0.3024) ,sens = 73,road=road_11,scale = 0.02)
 wagon_11_3 = Wagon((0.403, 0.358) ,sens = 51,road=road_11,scale = 0.019)
 wagon_11_4 = Wagon((0.3751, 0.4035) ,sens = 23,road=road_11,scale = 0.019)
 
-road_12 = Road(("ville1","ville2"),"gris")
+road_12 = Road(("ville1","ville2"),"noir",player)
 wagon_12_1 = Wagon((0.405, 0.5507) ,sens = -4,road=road_12,scale = 0.02)
 wagon_12_2 = Wagon((0.441, 0.5573) ,sens = -4,road=road_12,scale = 0.02)
 wagon_12_3 = Wagon((0.4772, 0.5627) ,sens = -3,road=road_12,scale = 0.02)
@@ -92,7 +100,7 @@ wagon_12_6 = Wagon((0.586, 0.58) ,sens = -4,road=road_12,scale = 0.02)
 wagon_12_7 = Wagon((0.6249, 0.582) ,sens = -4,road=road_12,scale = 0.02)
 wagon_12_8 = Wagon((0.66, 0.582) ,sens = 5,road=road_12,scale = 0.02)
 
-road_13 = Road(("ville1","ville2"),"blanc")
+road_13 = Road(("ville1","ville2"),"blanc",player)
 wagon_13_1 = Wagon((0.3982, 0.502) ,sens = 44,road=road_13,scale = 0.02)
 wagon_13_2 = Wagon((0.4222, 0.469) ,sens = 25,road=road_13,scale = 0.02)
 wagon_13_3 = Wagon((0.4552, 0.461) ,sens = 5,road=road_13,scale = 0.02)
@@ -100,38 +108,38 @@ wagon_13_4 = Wagon((0.4895, 0.466) ,sens = -14,road=road_13,scale = 0.02)
 wagon_13_5 = Wagon((0.5235, 0.484) ,sens = -6,road=road_13,scale = 0.02)
 wagon_13_6 = Wagon((0.557, 0.459) ,sens = 30,road=road_13,scale = 0.02)
 
-road_14 = Road(("ville1","ville2"),"tout")
+road_14 = Road(("ville1","ville2"),"tout",player)
 wagon_14_1 = Wagon((0.38, 0.4387) ,sens = -7,road=road_14,scale = 0.02)
 wagon_14_2 = Wagon((0.416, 0.4427) ,sens = 0,road=road_14,scale = 0.02)
 wagon_14_3 = Wagon((0.4519, 0.415) ,sens = 23,road=road_14,scale = 0.02)
 wagon_14_4 = Wagon((0.484, 0.369) ,sens = 44,road=road_14,scale = 0.02)
 
-road_15 = Road(("ville1","ville2"),"tout")
+road_15 = Road(("ville1","ville2"),"tout",player)
 wagon_15_1 = Wagon((0.4333, 0.2300) ,sens = -39,road=road_15,scale = 0.02)
 wagon_15_2 = Wagon((0.458, 0.2725) ,sens = -39,road=road_15,scale = 0.02)
 wagon_15_3 = Wagon((0.485, 0.314) ,sens = -39,road=road_15,scale = 0.02)
 
-road_16 = Road(("ville1","ville2"),"bleu")
+road_16 = Road(("ville1","ville2"),"bleu",player)
 wagon_16_1 = Wagon((0.4392, 0.204) ,sens = 10,road=road_16,scale = 0.02)
 wagon_16_2 = Wagon((0.4752, 0.204) ,sens = 0,road=road_16,scale = 0.02)
 wagon_16_3 = Wagon((0.5123, 0.2053) ,sens = -12,road=road_16,scale = 0.02)
 wagon_16_4 = Wagon((0.549, 0.22) ,sens = -35,road=road_16,scale = 0.02)
 wagon_16_5 = Wagon((0.579, 0.2627) ,sens = -37,road=road_16,scale = 0.02)
 
-road_17 = Road(("ville1","ville2"),"vert")
+road_17 = Road(("ville1","ville2"),"vert",player)
 wagon_17_1 = Wagon((0.5198, 0.372) ,sens = -49,road=road_17,scale = 0.02)
 wagon_17_2 = Wagon((0.5488, 0.4173) ,sens = -27,road=road_17,scale = 0.02)
 
-road_18 = Road(("ville1","ville2"),"tout")
+road_18 = Road(("ville1","ville2"),"tout",player)
 wagon_18_1 = Wagon((0.5943, 0.4653) ,sens = -35,road=road_18,scale = 0.02)
 wagon_18_2 = Wagon((0.6271, 0.505) ,sens = -28,road=road_18,scale = 0.02)
 wagon_18_3 = Wagon((0.6611, 0.536) ,sens = -32,road=road_18,scale = 0.02)
 
-road_19 = Road(("ville1","ville2"),"tout")
+road_19 = Road(("ville1","ville2"),"tout",player)
 wagon_19_1 = Wagon((0.581, 0.3884) ,sens = -96,road=road_19,scale = 0.02)
 wagon_19_2 = Wagon((0.5876, 0.333) ,sens = -114,road=road_19,scale = 0.02)
 
-road_20 = Road(("ville1","ville2"),"orange")
+road_20 = Road(("ville1","ville2"),"orange",player)
 wagon_20_1 = Wagon((0.6189, 0.3165) ,sens = 0,road=road_20,scale = 0.02)
 wagon_20_2 = Wagon((0.6547, 0.318) ,sens = -22,road=road_20,scale = 0.02)
 wagon_20_3 = Wagon((0.689, 0.349) ,sens = -34,road=road_20,scale = 0.02)
@@ -152,26 +160,108 @@ destination_cards = [Card("destination",destination=("Ville1","Ville2")),
           Card("destination", destination=("Ville1", "Ville2")),
           Card("destination", destination=("Ville1", "Ville2"))]
 
-wagon_cards = [Card("wagon",color = "rouge"),
-                      Card("wagon",color = "jaune"),
-                      Card("wagon",color = "blanc"),
-                      Card("wagon",color = "tout"),
-                      Card("wagon",color = "rouge"),
-                      Card("wagon",color = "noir"),
-                      Card("wagon",color = "blanc"),
-                      Card("wagon",color = "tout"),
-                      Card("wagon",color = "rouge"),
-                      Card("wagon",color = "noir"),
-                      Card("wagon",color = "blanc"),
-                      Card("wagon",color = "tout"),
-                      Card("wagon",color = "rouge"),
-                      Card("wagon",color = "noir"),
-                      Card("wagon",color = "rouge"),
-                      Card("wagon",color = "noir")]
+wagon_cards = [Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="rose"),
+               Card("wagon", color="blanc"),
+               Card("wagon", color="bleu"),
+               Card("wagon", color="jaune"),
+               Card("wagon", color="orange"),
+               Card("wagon", color="noir"),
+               Card("wagon", color="rouge"),
+               Card("wagon", color="vert"),
+               Card("wagon", color="tout"),
+               ]
 
-#Création du joueur
-
-player = Player("No_name")
 
 #Création des pioches
 
@@ -179,10 +269,13 @@ destination_pile = Draw_pile(destination_cards,player,"destination_pile",(0.865,
 
 wagon_pile = Draw_pile(wagon_cards,player,"wagon_pile",(0.783, 0.405),0.24)
 
+used_cards = []
+
 #mise à jour du joueur
 
-player.wagon_cards = wagon_cards[0:1]
-player.destination_cards = destination_cards[0:9] #utiliser pop up pour proposer de choisir cartes
+player.wagon_cards = []
+player.destination_cards = [] #utiliser pop up pour proposer de choisir cartes
+player.used_cards = used_cards
 
 #Création des autres boutons intéractifs
 
@@ -252,26 +345,57 @@ interactive_objects = [destination_pile,
 
 show_visible_wagon(player,wagon_pile,interactive_objects) #première mise à jour des cartes wagons visibles
 
-while True :
 
-    Update_Objects(player, board) #mise à jour des variables des objets sur le plateau
-    board.represent() #actualisation graphique du plateau
+def IA_turn():
+    #on met un cache transparent
+    pop_up("L'IA à joue ça...", Button((0, 0)))
 
-    for event in pygame.event.get(): #vérification des actions du joueur
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
-        if event.type == pygame.MOUSEMOTION:
-            check_all_event(event,interactive_objects)
-        if event.type == pygame.MOUSEBUTTONUP :
-            check_all_event(event,interactive_objects)
-            show_visible_wagon(player, wagon_pile, interactive_objects) #mise à jour des cartes visibles
-            print((round(event.pos[0]/screen_width,4),round(event.pos[1]/screen_height,4)))
-        if event.type == pygame.KEYUP : #Infos utiles pour débogage
-            print("Destinis pioche : ",len(destination_pile.cards))
-            print("wagons pioche : ", len(wagon_pile.cards))
-            print("destini cards player : ", len(player.destination_cards))
-            print("wagon cards player : ", len(player.wagon_cards))
-            print("TOTAL : ",len(destination_pile.cards)+len(wagon_pile.cards)+len(player.destination_cards)+len(player.wagon_cards))
 
-    pygame.display.update()
+def player_turn():
+    end_turn = False
+    player.draw_credit = 2
+    pygame.event.clear()
+
+    while end_turn == False :
+
+        Update_Objects(player, board) #mise à jour des variables des objets sur le plateau
+        board.represent() #actualisation graphique du plateau
+
+        for event in pygame.event.get(): #vérification des actions du joueur
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEMOTION:
+                check_all_event(event,interactive_objects)
+            if event.type == pygame.MOUSEBUTTONUP :
+                check_all_event(event,interactive_objects)
+                show_visible_wagon(player, wagon_pile, interactive_objects) #mise à jour des cartes visibles
+                print((round(event.pos[0]/screen_width,4),round(event.pos[1]/screen_height,4)))
+            if event.type == pygame.KEYUP : #Infos utiles pour débogage
+                print("Destinis pioche : ",len(destination_pile.cards))
+                print("wagons pioche : ", len(wagon_pile.cards))
+                print("destini cards player : ", len(player.destination_cards))
+                print("wagon cards player : ", len(player.wagon_cards))
+                print("TOTAL : ",len(destination_pile.cards)+len(wagon_pile.cards)+len(player.destination_cards)+len(player.wagon_cards))
+
+        Update_Objects(player, board)  # mise à jour des variables des objets sur le plateau
+        board.represent()  # actualisation graphique du plateau
+
+        pygame.display.update()
+
+        if player.draw_credit <= 0:
+            end_turn = True
+
+end_game = False
+
+Update_Objects(player, board)  # mise à jour des variables des objets sur le plateau
+board.represent()  # actualisation graphique du plateau
+pop_up("A votre tour de commencer, utilisez les icones bleues pour vous aider !", Button((0, 0)))
+
+while end_game != True :
+
+    player_turn()
+    IA_turn()
+
+    if player.wagons <= 0 :
+        end_game = True
