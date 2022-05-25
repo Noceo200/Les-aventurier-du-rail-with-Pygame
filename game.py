@@ -142,15 +142,15 @@ wagon_20_6 = Wagon((0.7031, 0.5256) ,sens = 53,road=road_20,scale = 0.02)
 roads = [road_1,road_2,road_3,road_4,road_5,road_6,road_7,road_8,road_9,road_10,road_11,road_12,road_13,road_14,road_15,road_16,road_17,road_18,road_19,road_20]
 
 #création des cartes
-destination_cards = [Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination",destination=("Ville1","Ville2"),convert = False),
-          Card("destination", destination=("Ville1", "Ville2"),convert = False),
-          Card("destination", destination=("Ville1", "Ville2"),convert = False),
-          Card("destination", destination=("Ville1", "Ville2"),convert = False)]
+destination_cards = [Card("destination",destination=("Ville1","Ville2")),
+          Card("destination",destination=("Ville1","Ville2")),
+          Card("destination",destination=("Ville1","Ville2")),
+          Card("destination",destination=("Ville1","Ville2")),
+          Card("destination",destination=("Ville1","Ville2")),
+          Card("destination",destination=("Ville1","Ville2")),
+          Card("destination", destination=("Ville1", "Ville2")),
+          Card("destination", destination=("Ville1", "Ville2")),
+          Card("destination", destination=("Ville1", "Ville2"))]
 
 wagon_cards = [Card("wagon",color = "rouge"),
                       Card("wagon",color = "jaune"),
@@ -267,5 +267,11 @@ while True :
             check_all_event(event,interactive_objects)
             show_visible_wagon(player, wagon_pile, interactive_objects) #mise à jour des cartes visibles
             print((round(event.pos[0]/screen_width,4),round(event.pos[1]/screen_height,4)))
+        if event.type == pygame.KEYUP : #Infos utiles pour débogage
+            print("Destinis pioche : ",len(destination_pile.cards))
+            print("wagons pioche : ", len(wagon_pile.cards))
+            print("destini cards player : ", len(player.destination_cards))
+            print("wagon cards player : ", len(player.wagon_cards))
+            print("TOTAL : ",len(destination_pile.cards)+len(wagon_pile.cards)+len(player.destination_cards)+len(player.wagon_cards))
 
     pygame.display.update()

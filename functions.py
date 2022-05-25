@@ -23,7 +23,6 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     #affiche une fenetre pop up avec un message et la liste des objets étaler grace à leur .represent à des positions différentes
     #attend que l'utilisateur clique sur les objets étalers puis return l'objet choisi
     #penser à changer le status du joueur quand j'utilise ca pour que les objets ne soit pas cliquable comme d'habitude, ils doivent se renvoyer eux-mêmes à la place.
-
     # initialisation de la zone d'affichage
     image = ""
     if button.image2 != "" : #si on veut une pop_up avec une image de fond particulière
@@ -53,6 +52,10 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     elif len(objects) > 9 :
         print("Trop d'objets a afficher")
         objects = objects[0:9] #securiter pour pas dépasser en indices
+        perso_heigth = int(pygame.display.Info().current_h/1.162) # hauteur variable en fonction du message
+        positions = [(0.4, 0.23), (0.5, 0.23), (0.6, 0.23),
+                     (0.4, 0.46), (0.5, 0.46), (0.6, 0.46),
+                     (0.4, 0.69), (0.5, 0.69), (0.6, 0.69)]
 
     image = pygame.transform.scale(image, (perso_widht, int(perso_heigth)))
 
@@ -67,7 +70,7 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     texte = police.render(texte, 1, (0, 0, 0))
 
     end = False
-    choice = 0
+    choice = -1
 
     # Ajout d'un bouton retour si besoin
     image2 = ""
@@ -141,22 +144,27 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
                             image2.set_alpha(255)
                             statut = False
 
+                if choices == True: #vérification passage de la souris dessus
+                    check_all_event(event, objects)
+
             if event.type == pygame.MOUSEBUTTONUP:
                 #vérifier si il choisi un objet ou si il fait retour
-
                 if allow_return == True: #verification retour
                     check = get_pass_and_click(x2,y2,image2,event)
                     if check == "click":
                         choice = -1
-                        end = True
+                        return choice
 
                 # Possibilité de choisir un des objets si besoin
                 if choices == True:
-                    #utiliser get_pass_and_click, faire des cartes carrés
-                    choice = 0 #indique qu'un choix à été fait
-                    end = True
-
-
+                    check_all_event(event, objects)
+                    for obj in objects:
+                        #vérification de passage sur un des objet
+                        check = get_pass_and_click(obj.x,obj.y,obj.image,event)
+                        #renvoie du choix pour la carte sur laquelle le joueur clique
+                        if check == "click":
+                            choice = 0  # indique qu'un choix à été fait
+                            return choice
 
         pygame.display.update()
 

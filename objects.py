@@ -1,4 +1,7 @@
 import copy
+
+import numpy as np
+
 from functions import *
 import pygame
 
@@ -16,7 +19,7 @@ class Graphic_area():
         self.center = center
         self.sens = sens
 
-        #Conversion en jpeg de l'image si nécessaire
+        #Conversion en jpeg de l'image si nécessaire (pour autoriser transparence)
         if convert == True:
             self.image= self.image.convert()
         #Determination de la position en pixels
@@ -152,6 +155,7 @@ class Card(Graphic_area):
             self.player.draw_wagon(self.indice,self.pioche)
         elif self.type == "destination" :
             self.player.draw_destination(self.indice,self.pioche)
+            print("cliqued")
 
 class Draw_pile(Graphic_area):
     """
@@ -189,7 +193,7 @@ class Draw_pile(Graphic_area):
         """
         np.random.shuffle(self.cards)
 
-    def draw(self,amount,target,position = 0):
+    def draw(self,amount,position = 0):
         """
            Pioche le nombre de carte donné dans ce paquet de cartes et les ajoutes au paquet cible.
 
@@ -203,10 +207,11 @@ class Draw_pile(Graphic_area):
                position(int)
                  Position à partie de laquelle piocher, permet de piocher une carte spécifique dans la pioche. Par défaut, on commence avec la carte au dessus du paquet.
        """
-
+        target = np.array([])
         for i in range(amount):
             target = np.append(target,self.cards[position])
             self.cards = np.delete(self.cards,position)
+        return target
 
     def mouse_click(self):
         """
@@ -215,18 +220,21 @@ class Draw_pile(Graphic_area):
         if self.type == "wagon_pile":
             self.player.draw_wagon(5, self)
         elif self.type == "destination_pile":
+            self.player.draw_credit -= 2  # on retire 2 credits au joueur car il n epeut pas jouer après cette action
+            #initialisation des 3 premières cartes de la pioche de cartes destination
+            for i in range(3):
+                self.cards[i].player = self.player
+                self.cards[i].pioche = self
+                self.cards[i].indice = i
+            #affichage
             cards = self.cards[0:3]
-            choice = pop_up("Choisisssez une première carte", objects=cards, button=Button((0, 0)),choices = True,allow_return = True)
-            if choice != -1 : #si le joueur à fait un choix, il doit au moins en faire un deuxième
-                #self.player.draw_destination(choice,self)
-                print("1 card")
-                choice = pop_up("Choisisssez une deuxième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=False)
-                #self.player.draw_destination(choice, self)
-                print("2 cards")
-                choice = pop_up("Choisisssez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
+            choice = pop_up("Choisisssez une première carte", objects=cards, button=Button((0, 0)),choices = True,allow_return = False)
+            if choice != -1 : #si le joueur à fait un choix, il peut en faire un deuxième
+                cards = self.cards[0:2] #on affiche que les deux dernière carte du paquet, elles correspondent à celles que le joueur n'a pas pioché
+                choice = pop_up("Choisisssez une deuxième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True) #choice n'est pas utilisé ici puisque le joueur est obligé de piocher cette deuxième carte
                 if choice != -1:
-                    print("3 cards")
-                    #self.player.draw_destination(choice, self)
+                    cards = self.cards[0:1]
+                    pop_up("Choisisssez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
 
 class Player():
     """
@@ -290,17 +298,17 @@ class Player():
         if indice == 5 : #si le joueur pioche dans la pioche, il perd juste un crédit, et il ne peut plus piocher de locomotive face visible
             self.draw_credit -= 1 #on retire un crédit
             self.status = "drawing_wagon" #mise à jour du status du joueur
-            pioche.draw(1,self.wagon_cards,indice) #on transfère la carte piocher vers les cartes du joueur
+            self.wagon_cards = np.append(self.wagon_cards,pioche.draw(1,indice)) #on transfère la carte piocher vers les cartes du joueur
         else :
             if pioche.cards[indice].color == "tout" and self.draw_credit > 1 : #si c'est une locomotive et que le joueur à le droit de la piocher
                 self.draw_credit -= 2  # on retire deux crédits
-                pioche.draw(1, self.wagon_cards, indice)
+                self.wagon_cards = np.append(self.wagon_cards,pioche.draw(1,indice))
             elif pioche.cards[indice].color == "tout" : #sinon si il peut pas piocher la locomotive
                 pop_up("Vous n'avez pas assez de crédit.",Button((0, 0)))
             else : #sinon si c'est une autre carte
                 self.draw_credit -= 1  # on retire un crédit
                 self.status = "drawing_wagon"  # mise à jour du status du joueur
-                pioche.draw(1, self.wagon_cards, indice)
+                self.wagon_cards = np.append(self.wagon_cards,pioche.draw(1,indice))
 
         if self.draw_credit == 0: #si le joueur n'a plus de crédit c'est la fin de son tour
             self.status = "None"
@@ -320,14 +328,9 @@ class Player():
 
         #le programme principale gère le changement graphique qui affiche les cartes destinations
 
-        self.draw_credit -= 1  # on retire un crédit de pioche
         self.status = "drawing_destination1"  # mise à jour du status du joueur
-        pioche.draw(1, self.destination_cards, indice) #transfère la carte piochée de la pioche vers les cartes du joueur
-
-        #Dans le programme principale le joueur peut de nouveau piocher ou peut arreter
-
-        if self.draw_credit == -1: #le joueur peut piocher jusqu'a 3 cartes destination, son tour se termine donc quand il a -1 credits
-            self.status = "None"
+        self.destination_cards = np.append(self.destination_cards, pioche.draw(1, indice))  #transfère la carte piochée de la pioche vers les cartes du joueur
+        #Lorsque le joueur décide piocher une carte destination et que cette méthode est appelée, il doit forcément en piocher une deuxième et donc
 
     def take_route(self,road,pioche,verif = False):
         """
