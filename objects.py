@@ -154,8 +154,8 @@ class Card(Graphic_area):
         if self.type == "wagon":
             self.player.draw_wagon(self.indice,self.pioche)
         elif self.type == "destination" :
+            self.image.set_alpha(255)
             self.player.draw_destination(self.indice,self.pioche)
-            print("cliqued")
 
 class Draw_pile(Graphic_area):
     """
@@ -234,7 +234,7 @@ class Draw_pile(Graphic_area):
                 choice = pop_up("Choisisssez une deuxième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True) #choice n'est pas utilisé ici puisque le joueur est obligé de piocher cette deuxième carte
                 if choice != -1:
                     cards = self.cards[0:1]
-                    pop_up("Choisisssez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
+                    pop_up("Choisissez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
 
 class Player():
     """
@@ -246,29 +246,26 @@ class Player():
            name(string)
              Nom du joueur.
 
-           pion(Object.Wagon)
-             Motif qui représente les wagons du joueur sur le plateau.
-
            wagon_cards(Object.Draw_pile)
              Paquet de cartes wagon du joueur.
 
            destination_cards(Object.Draw_pile)
              Paquet de cartes destination du joueur.
     """
-    def __init__(self, name, pion = "", wagon_cards = "", destination_cards = ""):
+    def __init__(self, name, wagon_cards = "", destination_cards = "", used_cards = ""):
         """
             Créer un joueur avec le nom donné et ses cartes.
         """
 
         self.name = name
-        self.pion = pion #motif qui va representer les wagon du joueur posés sur le plateau
         self.wagon_cards = wagon_cards #cartes wagon du joueur
         self.destination_cards = destination_cards #cartes destination du joueur
         self.wagons = 45 #chaque joueur commence avec 45 wagons
-        self.draw_credit = 2 #nombre de carte que le joueur peut piocher (piocher une locomotive termine le tour donc coute 2 credits par exemple)
+        self.draw_credit = 200 #nombre de carte que le joueur peut piocher (piocher une locomotive termine le tour donc coute 2 credits par exemple)
         self.status = "" #status du joueur qui permet de savoir si il est en train de faire une action ou pas*
         self.linked_cities = np.array([]) #villes reliées par le joueur (mise a jour à chaque fois qu'il prend une route en ajoutant couple ("ville1","ville2"))
-
+        self.points = 0 #variable pour stocker le score du joueur
+        self.used_cards = used_cards
         self.cards_bar = Draw_pile(np.array([Card("wagon",color="rose"),
                                             Card("wagon",color="blanc"),
                                             Card("wagon",color="bleu"),
@@ -279,7 +276,7 @@ class Player():
                                             Card("wagon",color="vert"),
                                             Card("wagon",color="tout")])) #bar de cartes utiles pour la partie graphique ensuite
 
-        self.update() #on met à jour le player graphiquement
+        self.cards_number = {"rose": 0, "blanc": 0, "bleu": 0, "jaune": 0, "orange": 0, "noir": 0, "rouge": 0, "vert": 0, "tout": 0}
 
     def draw_wagon(self,indice,pioche):
         """
@@ -310,6 +307,9 @@ class Player():
                 self.status = "drawing_wagon"  # mise à jour du status du joueur
                 self.wagon_cards = np.append(self.wagon_cards,pioche.draw(1,indice))
 
+        #mise a jour du nombre de carte en couleur du joueur
+        self.cards_number[self.wagon_cards[-1].color] += 1
+
         if self.draw_credit == 0: #si le joueur n'a plus de crédit c'est la fin de son tour
             self.status = "None"
 
@@ -332,7 +332,7 @@ class Player():
         self.destination_cards = np.append(self.destination_cards, pioche.draw(1, indice))  #transfère la carte piochée de la pioche vers les cartes du joueur
         #Lorsque le joueur décide piocher une carte destination et que cette méthode est appelée, il doit forcément en piocher une deuxième et donc
 
-    def take_route(self,road,pioche,verif = False):
+    def take_route(self,road,verif = False):
         """
             Permet au joueur de prendre possession d'une route lorsque c'est sont tour.
 
@@ -348,36 +348,33 @@ class Player():
         """
         joker_use = 0 #variable pour gérer l'utilisation ou non de joker
         color_chose = road.color #variable pour gérer le choix de la couleur à utiliser lorsque la route le permet, elle vaut celle de la route par defaut
-
         #VERIFICATION
         if road.taken == False and  verif == False :
-            wagons_player = player_wagon_cards(self) #dictionnaire qui compte les cartes du joueur en fonction des couleurs
+            wagons_player = self.cards_number #dictionnaire qui compte les cartes du joueur en fonction des couleurs
             if road.color == "tout" : #si c'est une route où on peut mettre des wagons de la couleur souhaitée, il suffit d'avoir assez de wagon d'une même couleur ou d'avoir des jokers
-                if max(wagons_player.items()) >= len(road.sites): #si on a assez de wagons d'une meme couleur, on demande laquelle utiliser
-                    color_possible = np.array([]) #on regard entre quelles couleur l'utilisateur à le choix
+                if max(wagons_player.values()) >= len(road.sites): #si on a assez de wagons d'une meme couleur, on demande laquelle utiliser
+                    color_possible = [] #on regard entre quelles couleur l'utilisateur à le choix
                     i = 0
                     for key in wagons_player:
                         if wagons_player[key] >= len(road.sites):
-                            color_possible = np.append(color_possible,0) #on ajoute la position de la couleur qu'on peut utiliser
+                            color_possible.append(i) #on ajoute la position de la couleur qu'on peut utiliser
                         i += 1
-                    color_chose = pop_up("Choisissez quels wagons de la même couleur poser, il en faut "+str(len(road.sites)),
-                                         [self.cards_bar.cards[i] for i in color_possible]).color # propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisie
+                    color_chose = pop_up("Choisissez quelle couleur poser : ",Button((0, 0)),
+                                         [self.cards_bar.cards[i] for i in color_possible],allow_return=False).color # propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisie
                     verif = True
-                elif max(wagons_player.items())+wagons_player["tout"] >= len(road.sites): #si on a pas assez de wagons d'une meme couleur mais qu'on a assez de jokers, on demande quelle couleur utiliser
+                elif max(wagons_player.items())[1]+ wagons_player["tout"] >= len(road.sites): #si on a pas assez de wagons d'une meme couleur mais qu'on a assez de jokers, on demande quelle couleur utiliser
                     color_possible = []  # on regard entre quelles couleur l'utilisateur à le choix
                     i = 0
                     for key in wagons_player:
                         if wagons_player[key] >= len(road.sites)-wagons_player["tout"]:
                             color_possible = np.append(color_possible,0)  # on ajoute la position de la couleur qu'on peut utiliser
                         i += 1
-                    color_chose = pop_up("Vous avez "+str(wagons_player["tout"])+" jokers, "
-                                         +"choisissez quels wagons de la même couleur poser, il en faut " + str(len(road.sites)-wagons_player["tout"]),
+                    color_chose = pop_up("Choisissez quels wagons de la même couleur poser : ",Button((0, 0)),
                                          [self.cards_bar.cards[i] for i in color_possible]).color  #propose à l'utilisateur de choisir entre les wagons possibles et renvoie la couleur de la carte choisie
                     joker_use = len(road.sites) - wagons_player[color_chose] #nombre de joker a utiliser
                     verif = True
                 else :
-                    pass
-                    #message("Vous n'avez pas assez de wagons d'une même couleur, choisissez une autre route ou une autre action",4)
+                    pop_up("Vous n'avez pas assez de wagons    d'une même couleur ou de jokers", Button((0, 0)))
             else : #sinon si c'est une route avec une couleur définie
                 if wagons_player[road.color] >= len(road.sites):
                     verif = True
@@ -385,11 +382,9 @@ class Player():
                     joker_use = len(road.sites) - wagons_player[color_chose]
                     verif = True
                 else :
-                    pass
-                    #message("Vous n'avez pas assez de wagons "+str(road.color)+", il en faut "+str(len(road.sites)),4)
-        elif verif == False :
-            pass
-            #message("Cette routes est déjà prise",2)
+                    pop_up("Il vous manque "+str(len(road.sites)-(wagons_player[road.color]+ wagons_player["tout"]))  +" Wagons "+str(road.color)+" pour    prendre cette route", Button((0, 0)))
+        elif verif == False : #si la route est prise
+            pop_up("Cette route est déjà prise",Button((0, 0)))
 
         if verif == True:
             # PRISE DE LA ROUTE
@@ -398,36 +393,23 @@ class Player():
             self.wagons -= len(road.sites)
 
             #on défausse les cartes utilisées de son paquet
-            """delete_cards(self,color_chose,len(road.sites)-joker_use,pioche)
-            delete_cards(self,"tout",joker_use,pioche)"""
-            #à envoyer dans pioche défausse de board
+            # pour aller plus vite, on ne déplace pas vraiment les cartes du joueur vers la défausse, on créer directement des nouvelles cartes dans la défause
+            # ca evite un élgorithme pour retrouver les cartes des couleurs concernées dans la liste de carte du joueur
+            self.cards_number[color_chose] -= len(road.sites)-joker_use
+            self.cards_number["tout"] -= joker_use
+
+            for i in range(len(road.sites)-joker_use):
+                self.used_cards.append(Card("wagon", color = color_chose))
+            for i in range(joker_use):
+                self.used_cards.append(Card("wagon", color = "tout"))
+
+            #ajout des wagons du joueurs sur les emplacements de la route
+            for wagon in road.sites:
+                wagon.place_wagon("player")
 
             road.taken = True
             check_real_roads(self, road)  # ajout et mise à jour des différentes villes reliées par le joueur
-            """
-            Seulement pour partie graphique :
-            Ajout des wagons du joueur sur la route prise,
 
-            for site in road.sites :
-                 self.pion.represent(site.position[0],site.position[1]) #les wagons du joueur se placent sur tout les emplacements libres de la route
-            """
-
-    def update(self):
-        """
-            Met à jour les différents éléments du joueur.
-        """
-        #seulement pour partie graphique
-        pass
-
-    def represent(self,position):
-        """
-            Permet de representer graphiquement le joueur avec ces cartes
-        """
-        #self.cards_pack.represent(position) utiliser representation deja codé des autres objets pour les afficher
-        #utiliser le dictionnaire renvoyé par player_wagon_cards() pour afficher les paquets de cartes de différentes couleurs devant le joueurs
-        #définir ici ou afficher paramètre comme nom, nb wagon, credit pioche...
-        #Voir pour affichage des destinations choisis par l'utilisateur avec zone cliquable qui utilise pop_up("Voila vos cartes destinations",np.array([mettre carte destination])) (pas oublié de changer status joueur en "pop_up")
-        pass
 
 class Board():
     """
@@ -509,7 +491,7 @@ class Road():
                  Couleur de la route. ("rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout")
     """
 
-    def __init__(self,cities,color,sites = np.array([])):
+    def __init__(self,cities,color,player = "",sites = np.array([])):
         """
             Créer une route qui relie les deux villes données en paramètre
         """
@@ -517,6 +499,7 @@ class Road():
         self.sites = sites
         self.taken = False #booléen pour savoir si la route est prise ou pas (change ca méthode de représentation en conséquence)
         self.color = color
+        self.player = player
 
     def represent(self):
         """
@@ -574,7 +557,6 @@ class Wagon(Graphic_area):
               color(string)
                 Couleur du wagon.
    """
-
     def __init__(self, position, sens, road, scale = 1.0, convert = True,center = False):
         """
            Créer un wagon.
@@ -587,7 +569,7 @@ class Wagon(Graphic_area):
         self.image.set_alpha(150)
         self.road.sites = np.append(road.sites, [self])
 
-    def place_wagon(self):
+    def place_wagon(self,type):
         """
             Place un wagon sur le plateau.
 
@@ -598,7 +580,10 @@ class Wagon(Graphic_area):
                 position(int,int)
                     Position du wagon à placer.
         """
-        self.path = "Resources\Wagon_"+self.color+"_2.png"
+        if type == "player" :
+            self.path = "Resources\Wagon_"+self.color+"_2.png"
+        elif type == "IA" :
+            self.path = "Resources\Wagon_" + self.color + "_3.png"
         self.represent()
         self.taken = True
 
@@ -620,8 +605,7 @@ class Wagon(Graphic_area):
         """
             Action à éxecuter en cas de clique dans la zone par la souris
         """
-        for wagon in self.road.sites :
-            wagon.place_wagon()
+        self.road.player.take_route(self.road)
 
     def mouse_pass(self,statut):
         """

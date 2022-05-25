@@ -1,14 +1,6 @@
 import numpy as np
 import pygame
 
-def player_wagon_cards(player):
-    """
-    Fonction qui doit parcourir les cartes du joueur et renvoyer sous forme de dictionnaire combien il à de cartes pour chaque couleur de wagon
-    Penser à utiliser uniquement la liste de ses cartes wagons
-    Penser à bien garder le même orde des couleurs que dans la class player pour le return
-    """
-    return {"rose": 1, "blanc": 2, "bleu": 3, "jaune": 4, "orange": 5, "noir": 6, "rouge": 7, "vert": 8, "tout": 9}
-
 def check_real_roads(player,new_road):
     """
     Fonction qui doit mettre à jour les villes reliées par l'utilisateur à chaque fois qu'il prend une route
@@ -67,7 +59,16 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     # initialisation du texte
     l = int(pygame.display.Info().current_h/32.6)
     police = pygame.font.SysFont("Monospace", l, bold=True)
-    texte = police.render(texte, 1, (0, 0, 0))
+    texte2 = "" #variable pour gestion 2e ligne
+    if len(texte) > 35: #si le texte est trop grand et doit aller sur une deuxième ligne
+        texte2 = texte[35:]
+        texte = texte[0:35]
+        texte = police.render(texte, 1, (0, 0, 0))
+        texte2 = police.render(texte2, 1, (0, 0, 0))
+    else :
+        texte = police.render(texte, 1, (0, 0, 0))
+
+
 
     end = False
     choice = -1
@@ -87,11 +88,19 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
 
     # initialisation des éléments/Objets si besoin
     if len(objects) != 0:
-        for i in range(len(objects)):
-            objects[i].changed = True
-            objects[i].position = positions[i]
-            objects[i].scale = 0.22
-            objects[i].center = True
+        if objects[0].type == "wagon" :
+            for i in range(len(objects)):
+                objects[i].changed = True
+                objects[i].position = positions[i]
+                objects[i].scale = 0.12
+                objects[i].center = True
+        else :
+            for i in range(len(objects)):
+                objects[i].changed = True
+                objects[i].position = positions[i]
+                objects[i].scale = 0.22
+                objects[i].center = True
+
 
     while end == False:
 
@@ -114,8 +123,13 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
             # Affichage du fond
             display_surface.blit(image, (x, y))
 
-            #Affichage du texte en haut au centre de la fenetre
-            display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),int(y + (image.get_height() / 2) - texte.get_height())))
+            #Affichage du texte au centre de la fenetre avec 1 ou 2 lignes
+            if texte2 != "":  # si on doit afficher une deuxième ligne de texte
+                ecart_interligne = int(pygame.display.Info().current_h / 40) #trouvé a taton
+                display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),int(y + (image.get_height() / 2) - texte.get_height()-ecart_interligne)))
+                display_surface.blit(texte2, (int(x + (image.get_width() / 2) - (texte2.get_width() / 2)),int(y + (image.get_height() / 2) - texte2.get_height()+ecart_interligne)))
+            else:
+                display_surface.blit(texte, (int(x + (image.get_width() / 2) - (texte.get_width() / 2)),int(y + (image.get_height() / 2) - texte.get_height())))
 
             #Affichage du bouton retour si besoin
             if allow_return == True:
@@ -164,7 +178,7 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
                         #renvoie du choix pour la carte sur laquelle le joueur clique
                         if check == "click":
                             choice = 0  # indique qu'un choix à été fait
-                            return choice
+                            return obj #on renvoie l'objet
 
         pygame.display.update()
 
@@ -199,7 +213,7 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     #...
     #Update des boutons indiquant le nombre de cartes wagons du joueur
     i = 0
-    colors = player_wagon_cards(player)
+    colors = player.cards_number
     for color in colors :
         board.buttons[i].texte = str(colors[color]) #indice doit correspondre aux boutons dans le même ordre
         i+=1
@@ -212,7 +226,6 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     board.buttons[i].texte = '0'
     i += 1
     board.buttons[i].texte = '45'
-
 
 def show_visible_wagon(player,pioche,liste):
 
@@ -253,29 +266,5 @@ def show_visible_wagon(player,pioche,liste):
         liste.append(pioche.cards[i])
         pioche.cards[i].changed = True
 
+
 #/////POUBELLE/////
-def delete_cards(player,color,amount,pioche): #déjà fait en tant que méthode ?
-    """
-        Défausse un nombre de cartes de couleur donnés de la main du joueur.
-
-        Parmètres :
-            player(Object.Player)
-                Joueur à qui on retire les cartes.
-
-            color(string)
-                Couleur des cartes à lui retirer.
-
-            amount(int)
-                Nombre de cartes à défausser.
-
-            pioche(Object.Draw_pile)
-                Pioche dans laquelle défausser les cartes.
-    """
-    deleted = 0
-    i = 0
-    while deleted != amount :
-        card = player.wagon_cards.cards[i]
-        if card.color == color:
-            player.wagon_cards.draw(1,pioche,i-deleted)
-            deleted += 1
-    i += 1
