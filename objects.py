@@ -4,6 +4,15 @@ import numpy as np
 
 from functions import *
 import pygame
+from playsound import playsound
+
+#initialisation des sons
+
+sound_take_road = 'Resources/Songs/Sifflet.mp3'
+sound_draw_card = 'Resources/Songs/take_card2.mp3'
+sound_mouse_pass = 'Resources/Songs/clic.wav'
+sound_card_shuffle = 'Resources/Songs/card_shuffling3.mp3'
+
 
 class Graphic_area():
 
@@ -45,8 +54,24 @@ class Graphic_area():
         if self.texte != "" and (self.path == "Resources\default_button.png" or self.path == "Resources\instructions.png"): #donc si on a initialiser le texte pour le mettre au dessus de l'image
             l = int(pygame.display.Info().current_h / 32.6)
             police = pygame.font.SysFont("Monospace", l, bold=True)
-            texte_surface = police.render(self.texte, 1, (0, 0, 0))
-            display_surface.blit(texte_surface, (int(self.x + (self.image.get_width()/2) - (texte_surface.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte_surface.get_height()/2)))) #on place le texte au centre de l'image
+            texte = ""
+            texte2 = ""
+            if len(self.texte) > 56:  # si le texte est trop grand et doit aller sur une deuxième ligne
+                texte = self.texte[0:56]
+                texte2 = self.texte[56:]
+                texte = police.render(texte, 1, (0, 0, 0))
+                texte2 = police.render(texte2, 1, (0, 0, 0))
+            else:
+                texte = police.render(self.texte, 1, (0, 0, 0))
+            #affichage sur une ligne ou deux
+            if texte2 != "":  # si on doit afficher une deuxième ligne de texte
+                ecart_interligne = int(pygame.display.Info().current_h / 80) #trouvé a taton
+                display_surface.blit(texte, (int(self.x + (self.image.get_width()/2) - (texte.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte.get_height()/2)-ecart_interligne)))
+                display_surface.blit(texte2, (int(self.x + (self.image.get_width()/2) - (texte2.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte2.get_height()/2)+ecart_interligne)))
+            else:
+                display_surface.blit(texte, (int(self.x + (self.image.get_width()/2) - (texte.get_width()/2)), int(self.y + self.image.get_height()/2 - (texte.get_height()/2)))) #on place le texte au centre de l'image
+
+
 
     def check_event(self,event):
         """
@@ -79,6 +104,7 @@ class Graphic_area():
                     Défini si on rentre ou si on sort de la zone
         """
         if statut == True:
+            playsound(sound_mouse_pass, block=False)#son de passage de souris
             if self.texte == "" and self.image2 == "": #si on a bouton qui est cliquable, il devient transparent
                 self.image.set_alpha(100)
             else :
@@ -86,6 +112,7 @@ class Graphic_area():
         else:
             if self.texte == "" and self.image2 == "":
                 self.image.set_alpha(255)
+        pygame.display.update()
 
     def mouse_click(self):
         """
@@ -109,7 +136,7 @@ class Card(Graphic_area):
             destination(string,string) (Seulement pour les cartes de type destination)
                 ("Ville1","Ville2").
     """
-    def __init__(self,type, player = "", pioche = "", color = "None", destination = ("None","None"),position = (0,0),scale=1,convert = True):
+    def __init__(self,type, player = "", pioche = "", color = "None", destination = ("None","None"),points = 0,position = (0,0),scale=1,convert = True):
         """
             Créer une carte avec le type et la couleur voulu ou la destination voulu.
         """
@@ -126,6 +153,7 @@ class Card(Graphic_area):
         self.indice = 0 #indice de position de la carte dans la pioche, vaut 0 par défaut mais mise à jour uniquement lorsque les cartes on besoin d'etre visibles
         self.player = player #utile pour accéder aux pioches du joueur
         self.pioche = pioche #utile pour accéder à la pioche à laquelle elle appartient
+        self.points = points #points que rapport la carte (seulement pour les cartes destinations)
 
     def represent(self):
         """
@@ -143,6 +171,7 @@ class Card(Graphic_area):
                 self.x, self.y = (int(self.x - self.image.get_width() / 2), int(self.y - self.image.get_height() / 2))
             self.changed = False
 
+
         #Affichage
         display_surface = pygame.display.get_surface()
         display_surface.blit(self.image, (self.x, self.y))
@@ -151,6 +180,7 @@ class Card(Graphic_area):
         """
             Action à éxecuter en cas de clique dans la zone par la souris
         """
+        playsound(sound_draw_card, block=False)
         if self.type == "wagon":
             if self.player.status != "taking_road": #la carte est piochée seulement si elle a pas juste été sélectionnée pour choisir une couleur lors de l'action de prendre une route
                 self.player.draw_wagon(self.indice,self.pioche)
@@ -219,34 +249,45 @@ class Draw_pile(Graphic_area):
             Action à éxecuter en cas de clique dans la zone par la souris
         """
         if self.type == "wagon_pile":
+            playsound(sound_draw_card, block=False)
             self.player.draw_wagon(5, self)
         elif self.type == "destination_pile":
-            if self.player.draw_credit == 2 :
-                self.player.statut = "Drawing_destination"
-                self.player.draw_credit -= 2  # on retire 2 credits au joueur car il n epeut pas jouer après cette action
-                #mise d'un cache transparent
-                display_surface = pygame.display.get_surface()
-                cache = pygame.Surface((pygame.display.Info().current_w, pygame.display.Info().current_h))
-                cache.set_alpha(128)
-                cache.fill((0, 0, 0))
-                display_surface.blit(cache, (0, 0))  # affichage du cache transparent
-                #initialisation des 3 premières cartes de la pioche de cartes destination
-                for i in range(3):
-                    self.cards[i].player = self.player
-                    self.cards[i].pioche = self
-                    self.cards[i].indice = i
-                #affichage
-                cards = self.cards[0:3]
-                choice = pop_up("Choisisssez une première carte", objects=cards, button=Button((0, 0)),choices = True,allow_return = False)
-                if choice != -1 : #si le joueur à fait un choix, il peut en faire un deuxième
-                    cards = self.cards[0:2] #on affiche que les deux dernière carte du paquet, elles correspondent à celles que le joueur n'a pas pioché
-                    choice = pop_up("Choisisssez une deuxième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True) #choice n'est pas utilisé ici puisque le joueur est obligé de piocher cette deuxième carte
-                    if choice != -1:
-                        cards = self.cards[0:1]
-                        pop_up("Choisissez une troisième carte", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
-                self.player.statut = "None"
+            playsound(sound_card_shuffle, block=False)
+            if len(self.player.destination_cards) < 9 : #le joueur est limité a 9 cartes destinations (pour des raisons d'affichage)
+                if self.player.draw_credit == 2 :
+                    self.player.statut = "Drawing_destination"
+                    self.player.draw_credit -= 2  # on retire 2 credits au joueur car il n epeut pas jouer après cette action
+                    #mise d'un cache transparent
+                    display_surface = pygame.display.get_surface()
+                    cache = pygame.Surface((pygame.display.Info().current_w, pygame.display.Info().current_h))
+                    cache.set_alpha(128)
+                    cache.fill((0, 0, 0))
+                    display_surface.blit(cache, (0, 0))  # affichage du cache transparent
+                    #initialisation des 3 premières cartes de la pioche de cartes destination
+                    for i in range(3):
+                        self.cards[i].player = self.player
+                        self.cards[i].pioche = self
+                        self.cards[i].indice = i
+                    #affichage
+                    cards = self.cards[0:3]
+                    choice = pop_up("Choisisssez un premier objectif", objects=cards, button=Button((0, 0)),choices = True,allow_return = False)
+                    if choice != -1 : #si le joueur à fait un choix, il peut en faire un deuxième
+                        cards = self.cards[0:2] #on affiche que les deux dernière carte du paquet, elles correspondent à celles que le joueur n'a pas pioché
+                        if len(self.player.destination_cards) < 2 : #si on est au début du jeu, on le force à prendre une deuxième carte, sinon il peut en prendre qu'une seule
+                            choice = pop_up("Choisisssez un deuxième objectif", objects=cards, button=Button((0, 0)), choices=True,allow_return=False)
+                        else :
+                            choice = pop_up("Choisisssez un deuxième objectif", objects=cards, button=Button((0, 0)),choices=True, allow_return=True)
+                        if choice != -1:
+                            cards = self.cards[0:1]
+                            pop_up("Choisissez un troisième objectif", objects=cards, button=Button((0, 0)), choices=True,allow_return=True)
+                    self.player.statut = "None"
+                else :
+                    pop_up("Vous n'avez pas assez de crédits",Button((0, 0)))
             else :
-                pop_up("Vous n'avez pas assez de crédits",Button((0, 0)))
+                pop_up("Vous êtes limité a 9 objectifs", Button((0, 0)))
+
+            #mise à jour graphique des cartes destinations réussies
+            check_destinis(self.player.linked_cities, self.player.destination_cards, ckeck_or_addpoints=False)
 
 class Player():
     """
@@ -264,20 +305,21 @@ class Player():
            destination_cards(Object.Draw_pile)
              Paquet de cartes destination du joueur.
     """
-    def __init__(self, name, wagon_cards = "", destination_cards = "", used_cards = ""):
+    def __init__(self, name):
         """
             Créer un joueur avec le nom donné et ses cartes.
         """
 
         self.name = name
-        self.wagon_cards = wagon_cards #cartes wagon du joueur
-        self.destination_cards = destination_cards #cartes destination du joueur
-        self.wagons = 45 #chaque joueur commence avec 45 wagons
+        self.wagon_cards = "" #cartes wagon du joueur
+        self.destination_cards = "" #cartes destination du joueur
+        self.wagons = 10 #chaque joueur commence avec 45 wagons
         self.draw_credit = 0 #nombre de carte que le joueur peut piocher (piocher une locomotive termine le tour donc coute 2 credits par exemple)
         self.status = "" #status du joueur qui permet de savoir si il est en train de faire une action ou pas*
-        self.linked_cities = np.array([]) #villes reliées par le joueur (mise a jour à chaque fois qu'il prend une route en ajoutant couple ("ville1","ville2"))
+        self.linked_cities = [] #villes reliées par le joueur (mise a jour à chaque fois qu'il prend une route en ajoutant couple ("ville1","ville2"))
         self.points = 0 #variable pour stocker le score du joueur
-        self.used_cards = used_cards
+        self.used_cards = ""
+        self.board = "" #permet de réactualiser partie graphique du plateau depuis joueur
         self.cards_bar = Draw_pile(np.array([Card("wagon",player = self,color="rose"),
                                             Card("wagon",player = self,color="blanc"),
                                             Card("wagon",player = self,color="bleu"),
@@ -363,7 +405,7 @@ class Player():
         self.status = "taking_road"
 
         #VERIFICATION
-        if road.taken == False and  verif == False and self.draw_credit == 2:
+        if road.taken == False and  verif == False and self.draw_credit == 2 and self.wagons >= len(road.sites):
             wagons_player = self.cards_number #dictionnaire qui compte les cartes du joueur en fonction des couleurs
             if road.color == "tout" : #si c'est une route où on peut mettre des wagons de la couleur souhaitée, il suffit d'avoir assez de wagon d'une même couleur ou d'avoir des jokers
                 if max(wagons_player.values()) >= len(road.sites): #si on a assez de wagons d'une meme couleur, on demande laquelle utiliser
@@ -399,8 +441,11 @@ class Player():
                     pop_up("Il vous manque "+str(len(road.sites)-(wagons_player[road.color]+ wagons_player["tout"]))  +" Wagons "+str(road.color)+" pour    prendre cette route", Button((0, 0)))
         elif verif == False and self.draw_credit == 2: #si la route est prise
             pop_up("Cette route est déjà prise",Button((0, 0)))
-        else:
+        elif self.wagons >= len(road.sites):
             pop_up("Vous n'avez pas assez de crédits", Button((0, 0)))
+        else :
+            pop_up("Vous n'avez plus assez de wagons", Button((0, 0)))
+
 
         if verif == True:
             # PRISE DE LA ROUTE
@@ -409,7 +454,7 @@ class Player():
 
             #on défausse les cartes utilisées de son paquet
             # pour aller plus vite, on ne déplace pas vraiment les cartes du joueur vers la défausse, on créer directement des nouvelles cartes dans la défause
-            # ca evite un élgorithme pour retrouver les cartes des couleurs concernées dans la liste de carte du joueur
+            # ca evite un algorithme pour retrouver les cartes des couleurs concernées dans la liste de carte du joueur
             self.cards_number[color_chose] -= len(road.sites)-joker_use
             self.cards_number["tout"] -= joker_use
 
@@ -418,13 +463,29 @@ class Player():
             for i in range(joker_use):
                 self.used_cards.append(Card("wagon", color = "tout"))
 
+            #on ajoute des points au joueur qui dépendent de la taille de la route
+
+            points = [1,2,4,7,10,15]
+            for i in range(6):
+                if len(road.sites) == i+1 :
+                    self.points += points[i]
+                    break
+
+            #mise à jour des villes reliées par le joueur
+            add_road(self.linked_cities,road)
+
+            #comparaison avec ses cartes destinations et mise à jour graphique des cartes destinations réussies
+            check_destinis(self.linked_cities, self.destination_cards, ckeck_or_addpoints=False)
+
             #ajout des wagons du joueurs sur les emplacements de la route
             for wagon in road.sites:
                 wagon.place_wagon("player")
 
             road.taken = True
-            check_real_roads(self, road)  # ajout et mise à jour des différentes villes reliées par le joueur
-
+            Update_Objects(self, self.board)  # mise à jour des variables des objets sur le plateau
+            self.board.represent()  # actualisation graphique du plateau
+            pygame.display.update()
+            playsound(sound_take_road, block=True)
         self.status = "None"
 
 class Board():
@@ -559,6 +620,7 @@ class Button(Graphic_area):
 
     def mouse_click(self):
         if self.player != "":
+            playsound(sound_card_shuffle, block=False)
             texte = "Vos cartes destinations :"
             objects = self.player.destination_cards
             pop_up(texte, objects=objects, button=Button((0, 0)),choices = False,allow_return = True)
@@ -573,6 +635,8 @@ class Wagon(Graphic_area):
               color(string)
                 Couleur du wagon.
    """
+    selected = 0 #permet d'éviter qu'on puisse cliquer sur 2 wagons ou routes en même temps
+
     def __init__(self, position, sens, road, scale = 1.0, convert = True,center = False):
         """
            Créer un wagon.
@@ -582,7 +646,7 @@ class Wagon(Graphic_area):
         self.color = road.color
         image = "Resources\Wagon_" + self.color + ".png" #valeur par défaut
         super().__init__(position, scale, image, sens=sens, convert=convert, center=center)
-        self.image.set_alpha(150)
+        self.image.set_alpha(255)
         self.road.sites = np.append(road.sites, [self])
 
     def place_wagon(self,type):
@@ -621,7 +685,8 @@ class Wagon(Graphic_area):
         """
             Action à éxecuter en cas de clique dans la zone par la souris
         """
-        self.road.player.take_route(self.road)
+        if Wagon.selected == 1 :
+            self.road.player.take_route(self.road)
 
     def mouse_pass(self,statut):
         """
@@ -631,13 +696,20 @@ class Wagon(Graphic_area):
                 enter(bool)
                     Défini si on rentre ou si on sort de la zone
         """
-        if self.taken == False : #faire ca avec tout le groupe auquel appartient ce wagon
-            if statut == True:
+
+
+        if statut == True :
+            Wagon.selected += 1
+            if self.taken == False:
+                playsound(sound_mouse_pass, block=False)
+                for wagon in self.road.sites:
+                    wagon.image.set_alpha(100)
+        else:
+            Wagon.selected -= 1
+            if self.taken == False:
                 for wagon in self.road.sites:
                     wagon.image.set_alpha(255)
-            else:
-                for wagon in self.road.sites:
-                    wagon.image.set_alpha(170)
+        pygame.display.update()
 
 #///////POUBELLE//////////
 

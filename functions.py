@@ -1,15 +1,10 @@
 import numpy as np
 import pygame
+from itertools import combinations
 
-def check_real_roads(player,new_road):
-    """
-    Fonction qui doit mettre à jour les villes reliées par l'utilisateur à chaque fois qu'il prend une route
-    par exemple :
-    si il avait déjà relié "ville1" à "ville2"
-    et qu'il vient de relié "ville2" à "ville3"
-    alors on ajoute à player.linked_cities : ("ville1","ville3") (pas sous forme d'objet route)
-    """
-    pass
+def message(texte,button):
+    button.texte = texte
+    button.represent()
 
 def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True):
     #affiche une fenetre pop up avec un message et la liste des objets étaler grace à leur .represent à des positions différentes
@@ -17,6 +12,8 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     #penser à changer le status du joueur quand j'utilise ca pour que les objets ne soit pas cliquable comme d'habitude, ils doivent se renvoyer eux-mêmes à la place.
     # initialisation de la zone d'affichage
     image = ""
+    decalage = pygame.display.Info().current_h/3 #initialisation d'un décalage pour les fenetre de cartes destination qui ne doivent pas recouvrir la carte (en pixels)
+    decalage_prop = decalage/pygame.display.Info().current_h
     if button.image2 != "" : #si on veut une pop_up avec une image de fond particulière
         image = pygame.image.load(button.image2)
     else:
@@ -28,10 +25,16 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     positions = []
     if len(objects) == 2 :
         perso_heigth = int(pygame.display.Info().current_h/2.735)  # hauteur variable en fonction du message
-        positions = [(0.45, 0.5), (0.55, 0.5)]
+        if objects[0].type == "destination" :
+            positions = [(0.45, 0.5+decalage_prop), (0.55, 0.5+decalage_prop)]
+        else :
+            positions = [(0.45, 0.5), (0.55, 0.5)]
     elif len(objects) >0 and len(objects)<=3:
         perso_heigth = int(pygame.display.Info().current_h/2.735)  # hauteur variable en fonction du message
-        positions = [(0.5, 0.5), (0.4, 0.5), (0.6, 0.5)]
+        if objects[0].type == "destination" :
+            positions = [(0.5, 0.5+decalage_prop), (0.4, 0.5+decalage_prop), (0.6, 0.5+decalage_prop)]
+        else :
+            positions = [(0.5, 0.5), (0.4, 0.5), (0.6, 0.5)]
     elif len(objects) >3 and len(objects)<=6:
         perso_heigth = int(pygame.display.Info().current_h/1.631)
         positions = [(0.4, 0.36), (0.5, 0.36),(0.6, 0.36),
@@ -55,6 +58,9 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     x = int(0.5 * pygame.display.Info().current_w)
     y = int(0.5 * pygame.display.Info().current_h)
     x, y = (int(x - image.get_width() / 2), int(y - image.get_height() / 2))
+
+    if len(objects) != 0 and objects[0].type == "destination" and len(objects) <= 3: #si on doit afficher moins de 3 cartes destinations, alors on les affichent plus bas que la carte
+        y += decalage
 
     # initialisation du texte
     l = int(pygame.display.Info().current_h/32.6)
@@ -85,6 +91,7 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
         image2 = pygame.transform.scale(image2, (int(h*1.49), h))
         x2 = x + int(image2.get_width()/2.4)
         y2 = y
+
 
     # initialisation des éléments/Objets si besoin
     if len(objects) != 0:
@@ -183,7 +190,6 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
                         check = get_pass_and_click(obj.x,obj.y,obj.image,event)
                         #renvoie du choix pour la carte sur laquelle le joueur clique
                         if check == "click":
-                            choice = 0  # indique qu'un choix à été fait
                             return obj #on renvoie l'objet
 
         pygame.display.update()
@@ -229,8 +235,6 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     i += 1
     board.buttons[i].texte = str(player.wagons)
     i += 1
-    board.buttons[i].texte = '0'
-    i += 1
     board.buttons[i].texte = '45'
 
 def show_visible_wagon(player,pioche,liste):
@@ -272,5 +276,57 @@ def show_visible_wagon(player,pioche,liste):
         liste.append(pioche.cards[i])
         pioche.cards[i].changed = True
 
+def add_road(linked_cities,road):
+    link_found = 0 #stock le nombre de suite de villes auquelle on a ajouté des nouvelles villes
+    first_link_found_index = 0
+    for links in linked_cities :
+        if link_found == 0 : #seulement si on avait pas trouvé de liens avant
+            if road.cities[0] in links and road.cities[1] not in links: #on ajout l'autre composant a la liaison de villes si il n'est pas déjà dedans
+                link_found += 1
+                links.append(road.cities[1])
+                first_link_found_index = linked_cities.index(links) #on récupère l'indice de la première liaison dans laquelle on a ajouté la nouvelle route
+            elif road.cities[1] in links and road.cities[0] not in links:
+                link_found += 1
+                links.append(road.cities[0])
+                first_link_found_index = linked_cities.index(links)
+            elif road.cities[1] in links and road.cities[0] in links : #si les deux sont dedans on ne fais rien
+                link_found += 1
+                first_link_found_index = linked_cities.index(links)
+        else : #sinon si on avait trouvé des liens avant, on fusionnera toutes les autres liaisons qui ont aussi un lien
+            if road.cities[0] in links and road.cities[1] not in links:
+                linked_cities[first_link_found_index] = linked_cities[first_link_found_index] + links
+                linked_cities.remove(links)
+                linked_cities[first_link_found_index].remove(road.cities[0]) #suppression du doublon car il est dans les deux liste déjà
+            elif road.cities[1] in links and road.cities[0] not in links:
+                linked_cities[first_link_found_index] = linked_cities[first_link_found_index] + links
+                linked_cities.remove(links)
+                linked_cities[first_link_found_index].remove(road.cities[1])
+            elif road.cities[1] in links and road.cities[0] in links :
+                linked_cities[first_link_found_index] = linked_cities[first_link_found_index] + links
+                linked_cities.remove(links)
+                linked_cities[first_link_found_index].remove(road.cities[0])
+                linked_cities[first_link_found_index].remove(road.cities[1])
+
+    if link_found == 0: #si aucun lien n'a pu être fait, on créer une nouvelle liaison
+        linked_cities.append([road.cities[0],road.cities[1]])
+
+def check_destinis(linked_cities,destination_cards,ckeck_or_addpoints = True):
+    all_combinaisons = [] #stockage de toutes les combinaisons de villes que le joueur à réussi à avoir
+    for links in linked_cities:
+        all_combinaisons += list(combinations(links,2))
+
+    total_points = 0
+    for card in destination_cards :
+        if card.destination in all_combinaisons:
+            if ckeck_or_addpoints == False : #si on veut juste mettre à jour l'aspect des cartes destinations du joueur
+                card.image = pygame.image.load(card.path[:-4]+"_ok"+".png")
+                card.changed = True
+            else :
+                total_points += card.points
+        else :
+            if ckeck_or_addpoints == True: #pas besoin de changer l'aspect des cartes ici
+                total_points -= card.points
+    return total_points
 
 #/////POUBELLE/////
+

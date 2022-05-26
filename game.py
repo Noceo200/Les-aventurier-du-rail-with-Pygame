@@ -1,7 +1,6 @@
+import sys
 import time
-
 import numpy as np
-
 from objects import *
 
 #quand pioche principale = vide (donc quand il reste 6 cartes) il faut mélanger les cartes dans la défausse et les ajouter à la suite de ces 6 cartes
@@ -10,6 +9,16 @@ from objects import *
 
 import pygame
 from screeninfo import get_monitors
+
+from playsound import playsound
+
+#initialisation des sons
+
+back_ground_music = "Resources/Songs/background_theme.mp3"
+playsound(back_ground_music,block=False) #lancement de la music de fond, voir si plus simple avec autre librairy pour loop et intensité son
+
+sound_end = 'Resources/Songs/TicketCompletedVictory.mp3'
+sound_IA_turn = 'Resources/Songs/Intro_J_Connected2.mp3'
 
 #Dimensionnement zone d'affichage en fonction de l'ecran
 screen = get_monitors()
@@ -27,240 +36,156 @@ player = Player("No_name")
 
 #création des routes et leur wagons
 
-road_1 = Road(("ville1","ville2"),"noir",player)
-wagon_1_1 = Wagon((0.0230, 0.315) ,sens = -7,road=road_1,scale = 0.02)
-wagon_1_2 = Wagon((0.06, 0.327) ,sens = -5,road=road_1,scale = 0.02)
-wagon_1_3 = Wagon((0.7269, 0.258) ,sens = 0,road=road_1,scale = 0.02)
-wagon_1_4 = Wagon((0.6890, 0.2613) ,sens = 0,road=road_1,scale = 0.02)
-wagon_1_5 = Wagon((0.6495, 0.262) ,sens = 9,road=road_1,scale = 0.02)
-wagon_1_6 = Wagon((0.6145, 0.277) ,sens = 18,road=road_1,scale = 0.02)
+road_1 = Road(("ville0","ville1"),"noir",player)
+wagon_1_1 = Wagon((0.0230, 0.315) ,sens = -7,road=road_1,scale = 0.016)
+wagon_1_2 = Wagon((0.06, 0.327) ,sens = -5,road=road_1,scale = 0.016)
+wagon_1_3 = Wagon((0.7269, 0.258) ,sens = 0,road=road_1,scale = 0.016)
+wagon_1_4 = Wagon((0.6890, 0.2613) ,sens = 0,road=road_1,scale = 0.016)
+wagon_1_5 = Wagon((0.6495, 0.262) ,sens = 9,road=road_1,scale = 0.016)
+wagon_1_6 = Wagon((0.6145, 0.277) ,sens = 18,road=road_1,scale = 0.016)
 
 road_2 = Road(("ville2","ville3"),"vert",player)
-wagon_2_1 = Wagon((0.108, 0.328),sens = 6,road=road_2,scale = 0.019)
-wagon_2_2 = Wagon((0.143, 0.327),sens = 5,road=road_2,scale = 0.019)
-wagon_2_3 = Wagon((0.1767, 0.321),sens = 9,road=road_2,scale = 0.018)
+wagon_2_1 = Wagon((0.108, 0.328),sens = 6,road=road_2,scale = 0.016)
+wagon_2_2 = Wagon((0.143, 0.327),sens = 5,road=road_2,scale = 0.016)
+wagon_2_3 = Wagon((0.1767, 0.321),sens = 9,road=road_2,scale = 0.016)
 
 road_3 = Road(("ville3","ville4"),"rouge",player)
-wagon_3_1 = Wagon((0.102, 0.36) ,sens = 112,road=road_3,scale = 0.02)
-wagon_3_2 = Wagon((0.1152, 0.418) ,sens = 123,road=road_3,scale = 0.02)
-wagon_3_3 = Wagon((0.1385, 0.473) ,sens = 131,road=road_3,scale = 0.02)
-wagon_3_4 = Wagon((0.1648, 0.522) ,sens = 145,road=road_3,scale = 0.02)
-wagon_3_5 = Wagon((0.197, 0.56) ,sens = 149,road=road_3,scale = 0.02)
+wagon_3_1 = Wagon((0.102, 0.36) ,sens = 112,road=road_3,scale = 0.016)
+wagon_3_2 = Wagon((0.1152, 0.418) ,sens = 123,road=road_3,scale = 0.016)
+wagon_3_3 = Wagon((0.1385, 0.473) ,sens = 131,road=road_3,scale = 0.016)
+wagon_3_4 = Wagon((0.1648, 0.522) ,sens = 145,road=road_3,scale = 0.016)
+wagon_3_5 = Wagon((0.197, 0.56) ,sens = 149,road=road_3,scale = 0.016)
 
-road_4 = Road(("ville1","ville2"),"tout",player)
-wagon_4_1 = Wagon((0.2095, 0.335) ,sens = 100,road=road_4,scale = 0.02)
-wagon_4_2 = Wagon((0.215, 0.398) ,sens = 100,road=road_4,scale = 0.02)
-wagon_4_3 = Wagon((0.221, 0.459) ,sens = 100,road=road_4,scale = 0.02)
-wagon_4_4 = Wagon((0.2274, 0.521) ,sens = 100,road=road_4,scale = 0.02)
+road_4 = Road(("ville0","ville1"),"tout",player)
+wagon_4_1 = Wagon((0.2095, 0.335) ,sens = 100,road=road_4,scale = 0.016)
+wagon_4_2 = Wagon((0.215, 0.398) ,sens = 100,road=road_4,scale = 0.016)
+wagon_4_3 = Wagon((0.221, 0.459) ,sens = 100,road=road_4,scale = 0.016)
+wagon_4_4 = Wagon((0.2274, 0.521) ,sens = 100,road=road_4,scale = 0.016)
 
-road_5 = Road(("ville1","ville2"),"jaune",player)
-wagon_5_1 = Wagon((0.2177, 0.305) ,sens = 9,road=road_5,scale = 0.02)
-wagon_5_2 = Wagon((0.2513, 0.294) ,sens = 10,road=road_5,scale = 0.019)
-wagon_5_3 = Wagon((0.2834, 0.285) ,sens = 10,road=road_5,scale = 0.019)
-wagon_5_4 = Wagon((0.3154, 0.271) ,sens = 10,road=road_5,scale = 0.019)
+road_5 = Road(("ville0","ville1"),"jaune",player)
+wagon_5_1 = Wagon((0.2177, 0.305) ,sens = 9,road=road_5,scale = 0.016)
+wagon_5_2 = Wagon((0.2513, 0.294) ,sens = 10,road=road_5,scale = 0.016)
+wagon_5_3 = Wagon((0.2834, 0.285) ,sens = 10,road=road_5,scale = 0.016)
+wagon_5_4 = Wagon((0.3154, 0.271) ,sens = 10,road=road_5,scale = 0.016)
 
-road_6 = Road(("ville1","ville2"),"rose",player)
-wagon_6_1 = Wagon((0.24, 0.596) ,sens = -4,road=road_6,scale = 0.02)
-wagon_6_2 = Wagon((0.278, 0.593) ,sens = 8,road=road_6,scale = 0.02)
-wagon_6_3 = Wagon((0.3184, 0.5773) ,sens = 9,road=road_6,scale = 0.02)
-wagon_6_4 = Wagon((0.3579, 0.5627) ,sens = 11,road=road_6,scale = 0.02)
+road_6 = Road(("ville0","ville1"),"rose",player)
+wagon_6_1 = Wagon((0.24, 0.596) ,sens = -4,road=road_6,scale = 0.016)
+wagon_6_2 = Wagon((0.278, 0.593) ,sens = 8,road=road_6,scale = 0.016)
+wagon_6_3 = Wagon((0.3184, 0.5773) ,sens = 9,road=road_6,scale = 0.016)
+wagon_6_4 = Wagon((0.3579, 0.5627) ,sens = 11,road=road_6,scale = 0.016)
 
-road_7 = Road(("ville1","ville2"),"tout",player)
-wagon_7_1 = Wagon((0.241, 0.54) ,sens = 39,road=road_7,scale = 0.02)
-wagon_7_2 = Wagon((0.271, 0.505) ,sens = 31,road=road_7,scale = 0.02)
-wagon_7_3 = Wagon((0.3013, 0.471) ,sens = 30,road=road_7,scale = 0.02)
-wagon_7_4 = Wagon((0.336, 0.443) ,sens = 32,road=road_7,scale = 0.02)
+road_7 = Road(("ville0","ville1"),"tout",player)
+wagon_7_1 = Wagon((0.241, 0.54) ,sens = 39,road=road_7,scale = 0.016)
+wagon_7_2 = Wagon((0.271, 0.505) ,sens = 31,road=road_7,scale = 0.016)
+wagon_7_3 = Wagon((0.3013, 0.471) ,sens = 30,road=road_7,scale = 0.016)
+wagon_7_4 = Wagon((0.336, 0.443) ,sens = 32,road=road_7,scale = 0.016)
 
-road_8 = Road(("ville1","ville2"),"orange",player)
-wagon_8_1 = Wagon((0.328, 0.281) ,sens = 46,road=road_8,scale = 0.02)
-wagon_8_2 = Wagon((0.3261, 0.34) ,sens = 95,road=road_8,scale = 0.02)
-wagon_8_3 = Wagon((0.3348, 0.402) ,sens = 145,road=road_8,scale = 0.019)
+road_8 = Road(("ville0","ville1"),"orange",player)
+wagon_8_1 = Wagon((0.328, 0.281) ,sens = 46,road=road_8,scale = 0.016)
+wagon_8_2 = Wagon((0.3261, 0.34) ,sens = 95,road=road_8,scale = 0.016)
+wagon_8_3 = Wagon((0.3348, 0.402) ,sens = 145,road=road_8,scale = 0.016)
 
-road_9 = Road(("ville1","ville2"),"jaune",player)
-wagon_9_1 = Wagon((0.3682, 0.4423) ,sens = 101,road=road_9,scale = 0.02)
-wagon_9_2 = Wagon((0.3766, 0.5035) ,sens = 110,road=road_9,scale = 0.019)
+road_9 = Road(("ville0","ville1"),"jaune",player)
+wagon_9_1 = Wagon((0.3682, 0.4423) ,sens = 101,road=road_9,scale = 0.016)
+wagon_9_2 = Wagon((0.3766, 0.5035) ,sens = 110,road=road_9,scale = 0.016)
 
-road_10 = Road(("ville1","ville2"),"tout",player)
-wagon_10_1 = Wagon((0.358, 0.2445) ,sens = 14,road=road_10,scale = 0.02)
-wagon_10_2 = Wagon((0.392, 0.225) ,sens = 14,road=road_10,scale = 0.02)
+road_10 = Road(("ville0","ville1"),"tout",player)
+wagon_10_1 = Wagon((0.358, 0.2445) ,sens = 14,road=road_10,scale = 0.016)
+wagon_10_2 = Wagon((0.392, 0.225) ,sens = 14,road=road_10,scale = 0.016)
 
-road_11 = Road(("ville1","ville2"),"rose",player)
-wagon_11_1 = Wagon((0.4243, 0.242) ,sens = 100,road=road_11,scale = 0.02)
-wagon_11_2 = Wagon((0.42, 0.3024) ,sens = 73,road=road_11,scale = 0.02)
-wagon_11_3 = Wagon((0.403, 0.358) ,sens = 51,road=road_11,scale = 0.019)
-wagon_11_4 = Wagon((0.3751, 0.4035) ,sens = 23,road=road_11,scale = 0.019)
+road_11 = Road(("ville0","ville1"),"rose",player)
+wagon_11_1 = Wagon((0.4243, 0.242) ,sens = 100,road=road_11,scale = 0.016)
+wagon_11_2 = Wagon((0.42, 0.3024) ,sens = 73,road=road_11,scale = 0.016)
+wagon_11_3 = Wagon((0.403, 0.358) ,sens = 51,road=road_11,scale = 0.016)
+wagon_11_4 = Wagon((0.3751, 0.4035) ,sens = 23,road=road_11,scale = 0.016)
 
-road_12 = Road(("ville1","ville2"),"noir",player)
-wagon_12_1 = Wagon((0.405, 0.5507) ,sens = -4,road=road_12,scale = 0.02)
-wagon_12_2 = Wagon((0.441, 0.5573) ,sens = -4,road=road_12,scale = 0.02)
-wagon_12_3 = Wagon((0.4772, 0.5627) ,sens = -3,road=road_12,scale = 0.02)
-wagon_12_4 = Wagon((0.5118, 0.5693) ,sens = -3,road=road_12,scale = 0.02)
-wagon_12_5 = Wagon((0.549, 0.5733) ,sens = -5,road=road_12,scale = 0.02)
-wagon_12_6 = Wagon((0.586, 0.58) ,sens = -4,road=road_12,scale = 0.02)
-wagon_12_7 = Wagon((0.6249, 0.582) ,sens = -4,road=road_12,scale = 0.02)
-wagon_12_8 = Wagon((0.66, 0.582) ,sens = 5,road=road_12,scale = 0.02)
+road_12 = Road(("ville0","ville1"),"noir",player)
+wagon_12_1 = Wagon((0.405, 0.5507) ,sens = -4,road=road_12,scale = 0.016)
+wagon_12_2 = Wagon((0.441, 0.5573) ,sens = -4,road=road_12,scale = 0.016)
+wagon_12_3 = Wagon((0.4772, 0.5627) ,sens = -3,road=road_12,scale = 0.016)
+wagon_12_4 = Wagon((0.5118, 0.5693) ,sens = -3,road=road_12,scale = 0.016)
+wagon_12_5 = Wagon((0.549, 0.5733) ,sens = -5,road=road_12,scale = 0.016)
+wagon_12_6 = Wagon((0.586, 0.58) ,sens = -4,road=road_12,scale = 0.016)
+wagon_12_7 = Wagon((0.6249, 0.582) ,sens = -4,road=road_12,scale = 0.016)
+wagon_12_8 = Wagon((0.66, 0.582) ,sens = 5,road=road_12,scale = 0.016)
 
-road_13 = Road(("ville1","ville2"),"blanc",player)
-wagon_13_1 = Wagon((0.3982, 0.502) ,sens = 44,road=road_13,scale = 0.02)
-wagon_13_2 = Wagon((0.4222, 0.469) ,sens = 25,road=road_13,scale = 0.02)
-wagon_13_3 = Wagon((0.4552, 0.461) ,sens = 5,road=road_13,scale = 0.02)
-wagon_13_4 = Wagon((0.4895, 0.466) ,sens = -14,road=road_13,scale = 0.02)
-wagon_13_5 = Wagon((0.5235, 0.484) ,sens = -6,road=road_13,scale = 0.02)
-wagon_13_6 = Wagon((0.557, 0.459) ,sens = 30,road=road_13,scale = 0.02)
+road_13 = Road(("ville0","ville1"),"blanc",player)
+wagon_13_1 = Wagon((0.3982, 0.502) ,sens = 44,road=road_13,scale = 0.016)
+wagon_13_2 = Wagon((0.4222, 0.469) ,sens = 25,road=road_13,scale = 0.016)
+wagon_13_3 = Wagon((0.4552, 0.461) ,sens = 5,road=road_13,scale = 0.016)
+wagon_13_4 = Wagon((0.4895, 0.466) ,sens = -14,road=road_13,scale = 0.016)
+wagon_13_5 = Wagon((0.5235, 0.484) ,sens = -6,road=road_13,scale = 0.016)
+wagon_13_6 = Wagon((0.557, 0.459) ,sens = 30,road=road_13,scale = 0.016)
 
-road_14 = Road(("ville1","ville2"),"tout",player)
-wagon_14_1 = Wagon((0.38, 0.4387) ,sens = -7,road=road_14,scale = 0.02)
-wagon_14_2 = Wagon((0.416, 0.4427) ,sens = 0,road=road_14,scale = 0.02)
-wagon_14_3 = Wagon((0.4519, 0.415) ,sens = 23,road=road_14,scale = 0.02)
-wagon_14_4 = Wagon((0.484, 0.369) ,sens = 44,road=road_14,scale = 0.02)
+road_14 = Road(("ville0","ville1"),"tout",player)
+wagon_14_1 = Wagon((0.38, 0.4387) ,sens = -7,road=road_14,scale = 0.016)
+wagon_14_2 = Wagon((0.416, 0.4427) ,sens = 0,road=road_14,scale = 0.016)
+wagon_14_3 = Wagon((0.4519, 0.415) ,sens = 23,road=road_14,scale = 0.016)
+wagon_14_4 = Wagon((0.484, 0.369) ,sens = 44,road=road_14,scale = 0.016)
 
-road_15 = Road(("ville1","ville2"),"tout",player)
-wagon_15_1 = Wagon((0.4333, 0.2300) ,sens = -39,road=road_15,scale = 0.02)
-wagon_15_2 = Wagon((0.458, 0.2725) ,sens = -39,road=road_15,scale = 0.02)
-wagon_15_3 = Wagon((0.485, 0.314) ,sens = -39,road=road_15,scale = 0.02)
+road_15 = Road(("ville0","ville1"),"tout",player)
+wagon_15_1 = Wagon((0.4333, 0.2300) ,sens = -39,road=road_15,scale = 0.016)
+wagon_15_2 = Wagon((0.458, 0.2725) ,sens = -39,road=road_15,scale = 0.016)
+wagon_15_3 = Wagon((0.485, 0.314) ,sens = -39,road=road_15,scale = 0.016)
 
-road_16 = Road(("ville1","ville2"),"bleu",player)
-wagon_16_1 = Wagon((0.4392, 0.204) ,sens = 10,road=road_16,scale = 0.02)
-wagon_16_2 = Wagon((0.4752, 0.204) ,sens = 0,road=road_16,scale = 0.02)
-wagon_16_3 = Wagon((0.5123, 0.2053) ,sens = -12,road=road_16,scale = 0.02)
-wagon_16_4 = Wagon((0.549, 0.22) ,sens = -35,road=road_16,scale = 0.02)
-wagon_16_5 = Wagon((0.579, 0.2627) ,sens = -37,road=road_16,scale = 0.02)
+road_16 = Road(("ville0","ville1"),"bleu",player)
+wagon_16_1 = Wagon((0.4392, 0.204) ,sens = 10,road=road_16,scale = 0.016)
+wagon_16_2 = Wagon((0.4752, 0.204) ,sens = 0,road=road_16,scale = 0.016)
+wagon_16_3 = Wagon((0.5123, 0.2053) ,sens = -12,road=road_16,scale = 0.016)
+wagon_16_4 = Wagon((0.549, 0.22) ,sens = -35,road=road_16,scale = 0.016)
+wagon_16_5 = Wagon((0.579, 0.2627) ,sens = -37,road=road_16,scale = 0.016)
 
-road_17 = Road(("ville1","ville2"),"vert",player)
-wagon_17_1 = Wagon((0.5198, 0.372) ,sens = -49,road=road_17,scale = 0.02)
-wagon_17_2 = Wagon((0.5488, 0.4173) ,sens = -27,road=road_17,scale = 0.02)
+road_17 = Road(("ville0","ville1"),"vert",player)
+wagon_17_1 = Wagon((0.5198, 0.372) ,sens = -49,road=road_17,scale = 0.016)
+wagon_17_2 = Wagon((0.5488, 0.4173) ,sens = -27,road=road_17,scale = 0.016)
 
-road_18 = Road(("ville1","ville2"),"tout",player)
-wagon_18_1 = Wagon((0.5943, 0.4653) ,sens = -35,road=road_18,scale = 0.02)
-wagon_18_2 = Wagon((0.6271, 0.505) ,sens = -28,road=road_18,scale = 0.02)
-wagon_18_3 = Wagon((0.6611, 0.536) ,sens = -32,road=road_18,scale = 0.02)
+road_18 = Road(("ville0","ville1"),"tout",player)
+wagon_18_1 = Wagon((0.5943, 0.4653) ,sens = -35,road=road_18,scale = 0.016)
+wagon_18_2 = Wagon((0.6271, 0.505) ,sens = -28,road=road_18,scale = 0.016)
+wagon_18_3 = Wagon((0.6611, 0.536) ,sens = -32,road=road_18,scale = 0.016)
 
-road_19 = Road(("ville1","ville2"),"tout",player)
-wagon_19_1 = Wagon((0.581, 0.3884) ,sens = -96,road=road_19,scale = 0.02)
-wagon_19_2 = Wagon((0.5876, 0.333) ,sens = -114,road=road_19,scale = 0.02)
+road_19 = Road(("ville0","ville1"),"tout",player)
+wagon_19_1 = Wagon((0.581, 0.3884) ,sens = -96,road=road_19,scale = 0.016)
+wagon_19_2 = Wagon((0.5876, 0.333) ,sens = -114,road=road_19,scale = 0.016)
 
-road_20 = Road(("ville1","ville2"),"orange",player)
-wagon_20_1 = Wagon((0.6189, 0.3165) ,sens = 0,road=road_20,scale = 0.02)
-wagon_20_2 = Wagon((0.6547, 0.318) ,sens = -22,road=road_20,scale = 0.02)
-wagon_20_3 = Wagon((0.689, 0.349) ,sens = -34,road=road_20,scale = 0.02)
-wagon_20_4 = Wagon((0.7178, 0.399) ,sens = 109,road=road_20,scale = 0.02)
-wagon_20_5 = Wagon((0.724, 0.463) ,sens = -100,road=road_20,scale = 0.02)
-wagon_20_6 = Wagon((0.7031, 0.5256) ,sens = 53,road=road_20,scale = 0.02)
+road_20 = Road(("ville0","ville1"),"orange",player)
+wagon_20_1 = Wagon((0.6189, 0.3165) ,sens = 0,road=road_20,scale = 0.016)
+wagon_20_2 = Wagon((0.6547, 0.318) ,sens = -22,road=road_20,scale = 0.016)
+wagon_20_3 = Wagon((0.689, 0.349) ,sens = -34,road=road_20,scale = 0.016)
+wagon_20_4 = Wagon((0.7178, 0.399) ,sens = 109,road=road_20,scale = 0.016)
+wagon_20_5 = Wagon((0.724, 0.463) ,sens = -100,road=road_20,scale = 0.016)
+wagon_20_6 = Wagon((0.7031, 0.5256) ,sens = 53,road=road_20,scale = 0.016)
 
 roads = [road_1,road_2,road_3,road_4,road_5,road_6,road_7,road_8,road_9,road_10,road_11,road_12,road_13,road_14,road_15,road_16,road_17,road_18,road_19,road_20]
 
 #création des cartes
-destination_cards = [Card("destination",destination=("Ville1","Ville2")),
-          Card("destination",destination=("Ville1","Ville2")),
-          Card("destination",destination=("Ville1","Ville2")),
-          Card("destination",destination=("Ville1","Ville2")),
-          Card("destination",destination=("Ville1","Ville2")),
-          Card("destination",destination=("Ville1","Ville2")),
-          Card("destination", destination=("Ville1", "Ville2")),
-          Card("destination", destination=("Ville1", "Ville2")),
-          Card("destination", destination=("Ville1", "Ville2"))]
+destination_cards = [Card("destination",destination=("ville0","ville1")),
+          Card("destination",destination=("ville0","ville1")),
+          Card("destination",destination=("ville0","ville1")),
+          Card("destination",destination=("ville0","ville1")),
+          Card("destination",destination=("ville0","ville1")),
+          Card("destination",destination=("ville0","ville1")),
+          Card("destination", destination=("ville0","ville1")),
+          Card("destination", destination=("ville0","ville1")),
+          Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1")),
+                     Card("destination", destination=("ville0","ville1"))
+                     ]
 
-wagon_cards = [Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="rose"),
-               Card("wagon", color="blanc"),
-               Card("wagon", color="bleu"),
-               Card("wagon", color="jaune"),
-               Card("wagon", color="orange"),
-               Card("wagon", color="noir"),
-               Card("wagon", color="rouge"),
-               Card("wagon", color="vert"),
-               Card("wagon", color="tout"),
-               ]
+wagon_cards = []
+
+color_list = ["rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout"]
+
+for color in color_list:
+    for i in range(12): #12 cartes de chaques couleurs
+        wagon_cards.append(Card("wagon", color=color))
 
 
 #Création des pioches
@@ -301,12 +226,11 @@ info6_button = Button((0.72, 0.04),scale = 0.06,center=True,image = 'Resources\i
 #bouton qui affichent les nombres de crédits et de wagons restant de l'utilisateur et de l'IA
 credit_txt = Button((0.91, 0.91),scale = 0.07,center=True,texte = "2")
 wagon_txt = Button((0.09, 0.91),scale = 0.07,center=True,texte = "45")
-credit_txt_IA = Button((0.63, 0.045),scale = 0.07,center=True,texte = "0")
 wagon_txt_IA = Button((0.40, 0.045),scale = 0.07,center=True,texte = "45")
 
 #bouton qui affiche texte instructions à l'utilisateur
 
-instruction_button = Button((0.5, 0.95),center = True,scale = 0.17, image = 'Resources\instructions.png',texte = 'texte de malade')
+instruction_button = Button((0.5, 0.95),center = True,scale = 0.17, image = 'Resources\instructions.png',texte = 'Bienvenue !')
 
 #bouton qui affiche les carte destination du joueur
 
@@ -315,12 +239,13 @@ show_destination_button = Button((0.6687, 0.7452),scale = 0.16,image = "Resource
 #ordre à respecter pour la liste : "rose","blanc","bleu","jaune","orange","noir","rouge","vert","tout"...
 buttons = [wagon_rose_button,wagon_blanc_button,wagon_bleu_button,wagon_jaune_button,wagon_orange_button,
            wagon_noir_button,wagon_rouge_button,wagon_vert_button,wagon_tout_button,credit_txt,wagon_txt,
-           credit_txt_IA,wagon_txt_IA,show_destination_button,instruction_button,info1_button,info2_button,info3_button,
+           wagon_txt_IA,show_destination_button,instruction_button,info1_button,info2_button,info3_button,
            info4_button,info5_button,info6_button]
 
-#Création et affichage du plateau
+#Création du plateau
 
 board = Board(destination_pile,wagon_pile,roads,buttons,display_surface,'Resources\Map.png')
+player.board = board
 
 #liste des objets intéractifs (qui nécessitent qu'on vérifie régulièrement si l'utilisateur intéragit avec)
 
@@ -343,11 +268,10 @@ interactive_objects = [destination_pile,
                                 wagon_18_1,wagon_18_2, wagon_18_3, wagon_19_1, wagon_19_2, wagon_20_1, wagon_20_2, wagon_20_3,wagon_20_4, wagon_20_5, wagon_20_6,
                                 wagon_pile.cards[0],wagon_pile.cards[1],wagon_pile.cards[2],wagon_pile.cards[3],wagon_pile.cards[4]] #les derniers éléments doivent etre les cartes de dessus de pioche
 
-show_visible_wagon(player,wagon_pile,interactive_objects) #première mise à jour des cartes wagons visibles
-
 
 def IA_turn():
     #on met un cache transparent
+    playsound(sound_IA_turn, block=False)
     pop_up("L'IA à joue ça...", Button((0, 0)))
 
 
@@ -365,6 +289,7 @@ def player_turn():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+                sys.exit()
             if event.type == pygame.MOUSEMOTION:
                 check_all_event(event,interactive_objects)
             if event.type == pygame.MOUSEBUTTONUP :
@@ -386,16 +311,52 @@ def player_turn():
         if player.draw_credit <= 0:
             end_turn = True
 
-end_game = False
+def game():
 
-Update_Objects(player, board)  # mise à jour des variables des objets sur le plateau
-board.represent()  # actualisation graphique du plateau
-pop_up("A votre tour de commencer, utilisez les icones bleues pour vous aider !", Button((0, 0)))
+    #INITIALISATION
+    end_game = False
+    destination_pile.mix() #mélange des pioches
+    wagon_pile.mix()
+    show_visible_wagon(player, wagon_pile, interactive_objects)  # première mise à jour des cartes wagons visibles
+    Update_Objects(player, board)  # mise à jour des variables des objets sur le plateau
+    board.represent()  # actualisation graphique du plateau
+    pop_up("A votre tour de commencer, utilisez les icones bleues pour vous aider !", Button((0, 0)))
+    Update_Objects(player, board)  # mise à jour des variables des objets sur le plateau
+    board.represent()  # actualisation graphique du plateau
+    pygame.display.update()
+    #choix des cartes destinations
+    player.draw_credit = 2
+    destination_pile.mouse_click()
+    message("A votre tour : Piochez 2 cartes wagons, Piochez d'autres cartes destinations, ou prenez une route.",instruction_button)
 
-while end_game != True :
+    while end_game != True :
 
-    player_turn()
-    IA_turn()
+        message("A votre tour : Piochez 2 cartes wagons, Piochez d'autres cartes destinations, ou prenez une route.",instruction_button)
+        pygame.display.update()
+        player_turn()
+        message("C'est au tour de votre adversaire.",instruction_button)
+        pygame.display.update()
+        time.sleep(0.2)
+        IA_turn()
+        pygame.display.update()
 
-    if player.wagons <= 0 :
+        #vérification fin de pioches
+        if len(wagon_pile.cards) <= 11:
+            np.random.shuffle(used_cards)
+            wagon_pile.cards = np.append(wagon_pile.cards,used_cards)
+            if len(used_cards) == 0 : #pour eviter bug au cas ou personne ne se débarasse de ses cartes
+                np.random.shuffle(wagon_cards)
+                wagon_pile.cards = np.append(wagon_pile.cards, wagon_cards)
+
+        #vérification fin de jeu
         end_game = True
+        #si il reste une route que le joueur et l'IA peuvent remplir, alors le jeu continue,sinon on l'arrête
+        for road in roads :
+            if road.taken == False and len(road.sites) <= player.wagons :
+                end_game = False
+                break
+
+
+    playsound(sound_end,block=False)
+
+game()
