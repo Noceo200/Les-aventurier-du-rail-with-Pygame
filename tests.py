@@ -1,51 +1,71 @@
 import unittest
-import numpy as np
 from objects import *
 import pygame
+import random
 
 """
 Test des objets
 """
 
 pygame.init()
+display_surface = pygame.display.set_mode((10, 10))
 
 class TestCard(unittest.TestCase):
     """
-        Test de l'objet carte.
+        Test de l'objet Card, qui représente une carte.
     """
-    def test_init(self): #vérification de l'initialisation de notre objet
-        #création des objets utiles
-        card1 = Card("destination")
-        card2 = Card("destination",destination = ("Ville1","Ville2"))
-        card3 = Card("wagon",color = "bleu")
+    def setUp(self):
+        """
+            On créer toutes les cartes possibles pour les tests
+        """
+        #création de toutes les cartes destinations
+        self.destination_cards = []
+        cards = destination_cards_f() #renvoie les cartes destination possibles depuis le fichier texte fait pour
+        for card in cards:
+            self.destination_cards.append(Card("destination", destination=(card[0], card[1]), points=int(card[2])))
 
-        # ////TESTS////
-        self.assertEqual(card1.type,"destination")
-        self.assertEqual(card1.color, "None")
-        self.assertEqual(card1.destination, ("None","None"))
-        self.assertEqual(card2.type, "destination")
-        self.assertEqual(card2.color, "None")
-        self.assertEqual(card2.destination, ("Ville1","Ville2"))
-        self.assertEqual(card3.type, "wagon")
-        self.assertEqual(card3.color, "bleu")
-        self.assertEqual(card3.destination, ("None", "None"))
+        #création de toutes les cartes wagon possibles
+        self.wagon_cards = []
+        color_list = ["rose", "blanc", "bleu", "jaune", "orange", "noir", "rouge", "vert", "tout"]
+        for color in color_list:
+            for i in range(1):  # 1 carte de chaques couleurs
+                self.wagon_cards.append(Card("wagon", color=color))
 
+    def test_init(self):
+        """
+            On vérifie que la variable path des cartes créé est bien assigné automatiquement en fonction de la couleur ou de la destination de cette dernière
+        """
+        #TEST du bon paramétrage des cartes wagons
+        for card in self.wagon_cards:
+            self.assertEqual(card.path, "Resources/Card_"+card.color+".png")
 
-list_cards = np.array([Card("destination",destination = ("Ville1","Ville2")),
-                               Card("destination", destination=("Ville3", "Ville4")),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "rouge"),
-                               Card("wagon",color = "rose"),
-                               Card("wagon",color = "orange")])
+        #TEST du bon paramétrage des cartes destinations
+        for card in self.destination_cards:
+            self.assertEqual(card.path, "Resources/Card_"+card.destination[0]+"_"+card.destination[1]+".png")
 
-list_cards_sav = np.array([Card("destination",destination = ("Ville1","Ville2")),
-                               Card("destination", destination=("Ville3", "Ville4")),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "bleu"),
-                               Card("wagon",color = "rouge"),
-                               Card("wagon",color = "rose"),
-                               Card("wagon",color = "orange")])
+#création de listes pour les tests de pioches
+
+list_cards = np.array([Card("wagon",color = "bleu"),
+                       Card("wagon",color = "bleu"),
+                       Card("wagon",color = "rouge"),
+                       Card("wagon",color = "rose"),
+                       Card("wagon",color = "orange")]) #liste de cartes wagons
+
+list_cards2 = np.array([Card("destination",destination = ("newyork","lecap")),
+                       Card("destination",destination = ("pekin","newyork")),
+                       Card("destination",destination = ("paris","moscou")),
+                       Card("destination",destination = ("mumbay","kualalumpur"))]) #liste de cartes destinations
+
+list_cards_sav = np.array([Card("wagon",color = "bleu"),
+                           Card("wagon",color = "bleu"),
+                           Card("wagon",color = "rouge"),
+                           Card("wagon",color = "rose"),
+                           Card("wagon",color = "orange")]) #sauvegarde de la liste de cartes 1 pour comparaison après manipulations pour les tests
+
+list_cards2_sav = np.array([Card("destination",destination = ("newyork","lecap")),
+                           Card("destination",destination = ("pekin","newyork")),
+                           Card("destination",destination = ("paris","moscou")),
+                           Card("destination",destination = ("mumbay","kualalumpur"))])#sauvegarde de la liste de cartes 2 pour comparaison après manipulations pour les tests
 
 class TestDraw_pile(unittest.TestCase):
     """
@@ -55,57 +75,58 @@ class TestDraw_pile(unittest.TestCase):
         """
             On créer une liste de cartes et une pioche qui contient ces cartes
         """
-        self.pile = Draw_pile(list_cards)
+        self.pile1 = Draw_pile(list_cards)
+        self.pile2 = Draw_pile(list_cards2)
 
     def test_init(self):
         """
-            On vérifie que la pioche créée contient bien les cartes
+            On vérifie que la pioche créée contient bien les cartes des listes initiales
         """
-        # ////INITIALISATION////
-        verif = True #variable de vérification
         # ////TESTS////
-        if len(self.pile.cards) != len(list_cards): #on vérifie que la taille de notre pioche est correcte
-            verif = False
-        else : #on vérifie que chaque carte du paquet correspond bien à celle voulu
-            for i in range(len(list_cards)):
-                if (self.pile.cards[i].destination != list_cards[i].destination) or (self.pile.cards[i].color != list_cards[i].color):
-                    verif = False
-        self.assertTrue(verif)
+        # on vérifie que la taille des pioches est correcte
+        self.assertEqual(len(self.pile1.cards), len(list_cards))
+        self.assertEqual(len(self.pile2.cards), len(list_cards2))
+
+        #on vérifie que chaque carte du paquet correspond bien à celle voulu
+        self.assertEqual([card.color for card in self.pile1.cards], [card.color for card in list_cards_sav])
+        self.assertEqual([card.destination for card in self.pile2.cards],[card.destination for card in list_cards2_sav])
 
     def test_mix(self):
         """
             On test la méthode pour mélanger les cartes
         """
         # ////INITIALISATION////
-        self.pile.mix() #on mélange les carte
+        self.pile1.mix() #on mélange les carte
+        self.pile2.mix()
         # ////TESTS////
-        verif = False
-        for i in range(len(list_cards)): #on vérifie qu'au moins une des cartes à été déplacée
-            if (self.pile.cards[i].destination != list_cards_sav[i].destination) or (self.pile.cards[i].color != list_cards_sav[i].color):
-                verif = True
-
-        self.assertTrue(verif)
+        #on vérifie que les paquets sont différents
+        self.assertNotEqual([card.color for card in self.pile1.cards], [card.color for card in list_cards_sav])
+        self.assertNotEqual([card.destination for card in self.pile2.cards], [card.destination for card in list_cards2_sav])
 
     def test_draw(self):
         """
-            On test la méthode pour piocher, elle permet de prendre un nombre de carte voulus dans ce paquet à partir d'une carte voulu
-            (donc forcément depuis le haut de la pioche) et transfère ces cartes vers un autre paquet donné.
+            On test la méthode pour piocher, elle renvoie une liste des cartes qu'on a pioché et les enlève de la pioche cible.
         """
-        # ////INITIALISATION////
-        pile2 = Draw_pile(np.array([])) #paquet qui va recevoir le cartes
-        to_draw = self.pile.cards[len(self.pile.cards)-5:len(self.pile.cards)] #ce qui est censé etre pioché
-        initial_len = len(self.pile.cards) #nombre de cartes avant pioche dans le paquet ou on va piocher
-        self.pile.draw(5,pile2) #on pioche 5 carte depuis le dessus de la pioche et on les envoie dans "pioche2"
-        verif = True
-        # ////TESTS////
-        if len(pile2.cards) != len(to_draw):
-            verif = False
-        else : #verification qu'on a les cartes voulus dans le paquet cible "pioche2"
-            for i in range(len(to_draw)):
-                if (pile2.cards[i].destination != to_draw[len(to_draw)-i-1].destination) or (pile2.cards[i].color != to_draw[len(to_draw)-i-1].color):
-                    verif = False
-        self.assertTrue(verif) #on vérifie que la pile 2 à bien recu les cartes a piocher
-        self.assertEqual(len(self.pile.cards), initial_len-len(to_draw)) #on vérifie qu'on a bien effacer les cartes de la pile initial
+        for i in range(10): #on fait 10 tests différents avec des valeurs aléatoires
+            amount1 = random.randint(0,len(self.pile1.cards)-1) #nombre de carte à piocher dans la pioche1
+            amount2 = random.randint(0,len(self.pile2.cards)-1) #nombre de carte à piocher dans la pioche2
+            pos1 = random.randint(0,len(self.pile1.cards)-1-amount1) #a partir de quelle position piocher dans la pioche 1
+            pos2 = random.randint(0,len(self.pile2.cards)-1-amount2)#a partir de quelle position piocher dans la pioche 1
+            # ////INITIALISATION////
+            #on réinitialise nos pioche comme au début
+            to_draw1 = self.pile1.cards[pos1:pos1+amount1] #résultat auquel on s'attend après avoir piocher amount1 cartes depuis la carte de position pos1 de la pioche 1
+            to_draw2 = self.pile2.cards[pos2:pos2+amount2] #résultat auquel on s'attend après avoir piocher amount2 cartes depuis la carte de position pos2 de la pioche 2
+            draw1 = self.pile1.draw(amount1,pos1) #on pioche amount1 cartes depuis la carte de position pos1
+            draw2 = self.pile2.draw(amount2,pos2) #on pioche amount2 cartes depuis la carte de position pos2
+
+            # ////TESTS////
+            #vérification des tailles
+            self.assertEqual(len(draw1), len(to_draw1))
+            self.assertEqual(len(draw2), len(to_draw2))
+
+            #verification qu'on a les cartes voulus en piochant
+            self.assertEqual([card.color for card in draw1], [card.color for card in to_draw1])
+            self.assertEqual([card.destination for card in draw2], [card.destination for card in to_draw2])
 
 
 if __name__ == '__main__' :

@@ -1,6 +1,9 @@
 import numpy as np
 import pygame
 from itertools import combinations
+from datetime import datetime
+import sys
+import dijkstra as dj
 
 def message(texte,button):
     button.texte = texte
@@ -17,7 +20,7 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     if button.image2 != "" : #si on veut une pop_up avec une image de fond particulière
         image = pygame.image.load(button.image2)
     else:
-        image = pygame.image.load("Resources\pop_up.png")
+        image = pygame.image.load("Resources/pop_up.png")
     display_surface = pygame.display.get_surface()
     # Taille de l'affichage (dépend de la taille du texte et des objets)
     perso_heigth = int(pygame.display.Info().current_h/2.325)
@@ -45,7 +48,6 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
                      (0.4, 0.46), (0.5, 0.46), (0.6, 0.46),
                      (0.4, 0.69), (0.5, 0.69), (0.6, 0.69)]
     elif len(objects) > 9 :
-        print("Trop d'objets a afficher")
         objects = objects[0:9] #securiter pour pas dépasser en indices
         perso_heigth = int(pygame.display.Info().current_h/1.162) # hauteur variable en fonction du message
         positions = [(0.4, 0.23), (0.5, 0.23), (0.6, 0.23),
@@ -85,7 +87,7 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     y2 = 0
     statut = False
     if allow_return == True:
-        image2 = pygame.image.load("Resources\quit.png")
+        image2 = pygame.image.load("Resources/quit.png")
         image2 = image2.convert()
         h = int(pygame.display.Info().current_h /16)
         image2 = pygame.transform.scale(image2, (int(h*1.49), h))
@@ -219,7 +221,7 @@ def check_all_event(event,objects):
     for object in objects :
         object.check_event(event)
 
-def Update_Objects(player,board): #ajouter paramètre "IA"
+def Update_Objects(player,IA,board): #ajouter paramètre "IA"
     #fonction qui update tout les objets graphique à mettre à jour régulièrement
     #Update des nombres de wagons et de crédits du joueur et de l'IA
     #...
@@ -235,7 +237,13 @@ def Update_Objects(player,board): #ajouter paramètre "IA"
     i += 1
     board.buttons[i].texte = str(player.wagons)
     i += 1
-    board.buttons[i].texte = '45'
+    if IA != "": #car on peut appeler la fonction sans lui demander de mettre à jour les valeurs d'IA
+        board.buttons[i].texte = str(IA.wagons)
+    i += 1
+    board.buttons[i].texte = str(player.points)
+    i+=1
+    if IA != "": #car on peut appeler la fonction sans lui demander de mettre à jour les valeurs d'IA
+        board.buttons[i].texte = str(IA.points)
 
 def show_visible_wagon(player,pioche,liste):
 
@@ -314,12 +322,16 @@ def check_destinis(linked_cities,destination_cards,ckeck_or_addpoints = True):
     all_combinaisons = [] #stockage de toutes les combinaisons de villes que le joueur à réussi à avoir
     for links in linked_cities:
         all_combinaisons += list(combinations(links,2))
-
+    all_combinaisons2 = []
+    for combinaison in all_combinaisons :
+        all_combinaisons2.append((combinaison[1],combinaison[0]))
+    all_combinaisons = all_combinaisons+all_combinaisons2
     total_points = 0
     for card in destination_cards :
         if card.destination in all_combinaisons:
             if ckeck_or_addpoints == False : #si on veut juste mettre à jour l'aspect des cartes destinations du joueur
                 card.image = pygame.image.load(card.path[:-4]+"_ok"+".png")
+                card.ok = True
                 card.changed = True
             else :
                 total_points += card.points
@@ -328,5 +340,134 @@ def check_destinis(linked_cities,destination_cards,ckeck_or_addpoints = True):
                 total_points -= card.points
     return total_points
 
-#/////POUBELLE/////
+def get_font(size):  # Returns Press-Start-2P in the desired size
+    return pygame.font.Font(r"Resources/fontCorona.ttf", size)
 
+def show_final_score(player,ia,level,FINAL_SCORE_MENU):
+    f = open("Resources/logs/Results_game.txt",'a')
+    f.write("/n"+str(datetime.now().date())+" ; "+str(datetime.now().time())[0:5]+" ; "+level+" : " +str(player.points)+' , '+str(ia.points))
+    f.close()
+    window = pygame.display.get_surface()
+    ecart = int(pygame.display.Info().current_h / 10)
+    end = False
+    while not end:
+        FINAL_SCORE_MOUSE_POS = pygame.mouse.get_pos()
+        window.fill((255, 255, 255))
+
+        FINAL_SCORES_TEXT = get_font(60).render("RESULTAT DE LA PARTIE", True, (193, 43, 28))
+        FINAL_SCORES_RECT = FINAL_SCORES_TEXT.get_rect(center=(int(window.get_width()/2),int(window.get_height()/ 2- ecart)))
+        window.blit(FINAL_SCORES_TEXT, FINAL_SCORES_RECT)
+
+        if player.points >= ia.points :
+            FINAL_SCORES_TEXT = get_font(45).render("Victoire "+str(player.points)+" à "+str(ia.points)+" points", True, (193, 43, 28))
+            FINAL_SCORES_RECT = FINAL_SCORES_TEXT.get_rect(center=(int(window.get_width()/2 ),int(window.get_height()/ 2)))
+            window.blit(FINAL_SCORES_TEXT, FINAL_SCORES_RECT)
+
+        else:
+            FINAL_SCORES_TEXT = get_font(45).render("Defaite "+str(player.points)+" à "+str(ia.points)+" points", True,(193, 43, 28))
+            FINAL_SCORES_RECT = FINAL_SCORES_TEXT.get_rect(center=(int(window.get_width()/2 ),int(window.get_height()/ 2)))
+            window.blit(FINAL_SCORES_TEXT, FINAL_SCORES_RECT)
+
+        FINAL_SCORE_MENU.changeColor(FINAL_SCORE_MOUSE_POS)
+        FINAL_SCORE_MENU.update(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if FINAL_SCORE_MENU.checkForInput(FINAL_SCORE_MOUSE_POS):
+                    end = True
+        pygame.display.update()
+
+def destination_cards_f():
+    f = open("Resources/logs/Destination.txt", 'r')
+    ligne = f.readlines()
+    f.close()
+    ligne = [c.strip().split(';') for c in ligne]
+    return ligne
+
+def intelligent_choice(roads,IA):
+    #On génère le graphe qui modélise les difficultés de chaque chemins pour l'IA en fonction de ces cartes
+    Map = create_graphe(roads,IA)
+
+    #ensuite on choisi de se concentrer sur la carte destination qui a le chemin le plus facile à faire
+    difficulty = [] #liste qui stocke les différentes difficultées des cartes destinations
+    print("Carte destinations possibles : ")
+    for destini_card in IA.destination_cards :
+        if destini_card.ok == False:  # la carte est intéressante seulement si elle est pas déjà faites
+            dijkstra = dj.DijkstraSPF(Map, destini_card.destination[0]) #création d'un graphe partant de la première ville de la carte destination
+            distance = dijkstra.get_distance(destini_card.destination[1]) #calcul de la distance la plus courte jusqu'à la deuxième ville de la carte
+            print(str(destini_card.destination) + " Difficulté : "+str(distance)+" Chemin : "+ str(dijkstra.get_path(destini_card.destination[1])))
+            difficulty.append(distance) #ajout de cette distance à la liste difficulté
+        else :
+            difficulty.append(999)
+
+    pos = difficulty.index(min(difficulty))#recupération de la position de la carte la plus simple à accomplir
+    print("Carte destination Choisie : "+str(IA.destination_cards[pos].destination)+" "+str(difficulty[pos]))
+
+    if difficulty[pos] <= 100 : #on donne à l'IA la carte destination la plus simple à réaliser seulement si elle est pas impraticable
+        dijkstra = dj.DijkstraSPF(Map, IA.destination_cards[pos].destination[0])
+        path = dijkstra.get_path(IA.destination_cards[pos].destination[1])#on récupère le chemin le plus court pour relier les villes de la carte
+        print("Chemin : ",path)
+        return get_roads(path,roads) #on renvoie les routes à prendre qui permettent de réaliser l'objectif rapidement
+    else : #sinon l'IA doit repiocher de nouvelles carte destination
+        return [] #on renvoie aucune routes
+
+def intelligent_draw(roads,pioche,no_joker = False):
+    """pour choix carte, prendre que les couleurs des routes qui permettent de faire un objectif,
+            ou des jokers (si pas de couleurs bien trouvée); faire un orde de priorité des routes,
+            comme ca on cherche toujours a finir une route en priorité et si y'a pas la couleur dan sla pioche,
+            on tente avec deuxième route prio, puis joker si rien, et finalement pioche carte non visible si pas joker"""
+
+    color_needed = []
+    for road in roads :
+        if road.color != "tout" and road.taken == False : #on ajoute pas la couleur joker comme une couleur souhaitée car on ne veut pas piocher des joker en priorité (care coute le prix de 2 cartes)
+            color_needed.append(road.color) #on ajoute les couleurs recherchées dans une liste
+
+    print("Searching for colors : ", color_needed)
+
+    #on regarde chaque cartes de la pioche
+    for i in range(5):
+        if pioche.cards[i].color in color_needed:
+            return i #on pioche cette carte
+
+    #si aucune des couleure souhaitées sont dans la pioche visible, on pioche une joker (seulement si on est au premier tour)
+    for i in range(5):
+        if pioche.cards[i].color == "tout" and no_joker == False:
+            return i #on pioche cette carte
+
+    #et si il n'y a pas de joker non plus, on pioche une carte cachée
+    return 5
+
+def create_graphe(roads,IA):
+
+    #création d'un graphe
+    Map = dj.Graph()
+    #Création des liaisons
+    for road in roads :
+        value = len(road.sites)
+        if road.color == "tout":
+            value -= 1 #on favorise les liaisons joker
+        if road.taken == True and road.taken_by == "player" : #si la route est déjà prise par le joueur, on rend le chemin impraticable pour le graph
+            value += 999
+        elif road.taken == True and road.taken_by == "IA" : #sinon si la route est déjà prise, mais par l'IA, alors elle compte pour aucune difficulté
+            value = 0
+        Map.add_edge(road.cities[0],road.cities[1],value)
+        Map.add_edge(road.cities[1], road.cities[0], value) #ajout dans les deux sens pour avoir un graphe non orienté
+    return Map
+
+def get_roads(path,roads):
+
+    #extraire les routes nécessaire pour réaliser le chemin voulu
+    road_needed = []
+    for i in range(len(path)-1) : #extraction des routes a utiliser donc des couples de villes concernés
+        cities = (path[i],path[i+1]) #couple de villes dans un sens
+        cities_t = (path[i+1],path[i]) #couple de villes dans l'autre sens
+        for road in roads: #on trouve les routes associées aux couples
+            if (cities == road.cities or cities_t == road.cities) and road.taken == False :
+                road_needed.append(road)
+
+    return road_needed
+
+#/////POUBELLE/////

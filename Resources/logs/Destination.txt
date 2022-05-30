@@ -1,0 +1,14 @@
+paris;kualalumpur;10
+pekin;lecap;11
+buenosaires;moscou;11
+losangeles;moscou;12
+libreville;losangeles;13
+sidney;buenosaires;15
+paris;buenosaires;9
+newyork;lecap;11
+newyork;sidney;17
+kualalumpur;libreville;9
+losangeles;lecap;12
+paris;moscou;4
+pekin;newyork;15
+mumbay;kualalumpur;5

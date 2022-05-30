@@ -1,0 +1,27 @@
+
+2022-05-27 ; 16:49 ; intermediaire : 4 , 0
+2022-05-27 ; 16:51 ; debutant : 4 , 4
+2022-05-27 ; 16:53 ; debutant : 4 , 4
+2022-05-27 ; 16:54 ; intermediaire : 4 , 0
+2022-05-27 ; 16:56 ; intermediaire : 4 , 0
+2022-05-27 ; 16:58 ; intermediaire : 4 , 0
+2022-05-27 ; 16:59 ; intermediaire : 4 , 0
+2022-05-27 ; 17:00 ; intermediaire : 4 , 0
+2022-05-27 ; 17:04 ; intermediaire : 4 , 0
+2022-05-27 ; 17:05 ; intermediaire : 4 , 0
+2022-05-27 ; 17:05 ; intermediaire : 4 , 0
+2022-05-27 ; 17:06 ; debutant : 4 , 2
+2022-05-27 ; 18:11 ; intermediaire : 46 , -27
+2022-05-29 ; 13:45 ; debutant : 61 , -18
+2022-05-29 ; 13:51 ; intermediaire : 0 , -21
+2022-05-29 ; 14:24 ; debutant : 33 , -5
+2022-05-29 ; 14:28 ; debutant : 60 , -2
+2022-05-29 ; 14:56 ; intermediaire : 28 , -20
+2022-05-29 ; 22:11 ; intermediaire : 3 , 3
+2022-05-29 ; 23:31 ; intermediaire : -11 , 56
+2022-05-30 ; 00:17 ; intermediaire : -14 , 92
+2022-05-30 ; 02:16 ; intermediaire : 62 , 29
+2022-05-30 ; 02:27 ; intermediaire : -14 , 43
+2022-05-30 ; 02:28 ; intermediaire : -13 , 51
+2022-05-30 ; 02:32 ; intermediaire : -26 , 58
+2022-05-30 ; 02:34 ; intermediaire : -13 , 74
