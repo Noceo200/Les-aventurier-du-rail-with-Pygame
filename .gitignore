@@ -67,7 +67,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+# docs/_build/
 
 # PyBuilder
 .pybuilder/
@@ -135,5 +135,3 @@ Thumbs.db
 
 # Pycharm project
 .idea/
-Token github.txt
-Doc sphinx
