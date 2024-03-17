@@ -1,0 +1,28 @@
+Commencer par remplacer tout les mots "Resources/" de mes codes par :
+"C:/Users/utilisateur/OneDrive/Documents/Projet info/train/Resources/"
+
+Ensuite :
+
+démarrer cmd puis juste copier toutes les commandes dedans
+
+////////commandes 1 /////////
+
+cd C:\Users\utilisateur\OneDrive\Documents\Projet info\train\Doc sphinx\source
+
+rmdir /S docs
+
+////////commandes 2 /////////
+
+sphinx-apidoc -o docs "C:\Users\utilisateur\OneDrive\Documents\Projet info\train"
+
+cd..
+
+.\make html
+
+cd build\html
+
+.\index.html
+
+.
+
+Puis : Remettre juste le mot "Resources\" dans mes fichiers
