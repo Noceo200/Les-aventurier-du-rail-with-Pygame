@@ -6,13 +6,47 @@ import sys
 import dijkstra as dj
 
 def message(texte,button):
+    """
+        Met à jour et affiche le message du cadre d'instructions en bas de l'ecran avec le message donné.
+
+        :param texte: Nouveau texte à afficher dans le cadre d'instructions.
+        :type texte: string
+        :param button: Cadre d'instructions à mettre à jour et à afficher.
+        :type button: Object Button
+
+        Auteur : NOEL Océan
+    """
     button.texte = texte
     button.represent()
 
 def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True):
-    #affiche une fenetre pop up avec un message et la liste des objets étaler grace à leur .represent à des positions différentes
-    #attend que l'utilisateur clique sur les objets étalers puis return l'objet choisi
-    #penser à changer le status du joueur quand j'utilise ca pour que les objets ne soit pas cliquable comme d'habitude, ils doivent se renvoyer eux-mêmes à la place.
+    """
+        Affiche un message sous forme de pop-up avec ou sans objets, et renvoie un choix ou un objet, plusieurs options son possibles :
+        - Afficher uniquement du texte
+        - Afficher du texte avec des objets non intéractifs (non sélectionnables par le joueur)
+        - Afficher du texte avec des objets intéractifs (sélectionnables par le joueur)
+        - Afficher uniquement une image
+        - Autoriser la fermeture de la fenêtre à tout moment
+        - Ne pas autoriser la fermeture de la fenêtre et attendre qu'un objet soit sélectionné
+        Les objets sont automatiquement disposés et mis à l'échelle en fonction de leur nombre, ils sont limités à 9.
+        Le texte est automatiquement centré ou mis en haut de la fenêtre pop up en fonction de s'il faut afficher des objets ou pas en dessous.
+
+        :param texte: Texte à afficher dans la fenêtre pop-up.
+        :type texte: string
+        :param button: Boutton qui permet l'ouverture de cette fenêtre pop_up.
+        :type button: Object Button
+        :param objects: Liste des objets à afficher dans la fenêtre, 9 max, sinon le reste n'apparait pas.
+        :type objects: numpy Array
+        :param choices: Rend les objets intéractif si vrai, sinon les objets ne réagissent pas aux actions du joueur.
+        :type choices: bool
+        :param allow_return: Autorise la fermeture de la fenetre à tout moment si vrai, sinon empêche la fermeture jusqu'a selection d'un objet.
+        :type allow_return: bool
+
+        :return: Renvoie un choix qui peut être une demande fermeture de la fenetre ou un objet si le joeur choisi un objet.
+        :rtype: int or Object
+
+        Auteur : NOEL Océan
+    """
     # initialisation de la zone d'affichage
     image = ""
     decalage = pygame.display.Info().current_h/3 #initialisation d'un décalage pour les fenetre de cartes destination qui ne doivent pas recouvrir la carte (en pixels)
@@ -199,6 +233,23 @@ def pop_up(texte,button,objects = np.array([]),choices=True,allow_return = True)
     return choice
 
 def get_pass_and_click(x,y,surface,event):
+    """
+        Renvoie l'action que l'utilisateur à réalisée si elle est dans la surface donnée.
+
+        :param x: position horizontale du coin supérieur gauche de la surface en pixels.
+        :type x: int
+        :param y: position verticale du coin supérieur gauche de la surface en pixels.
+        :type y: int
+        :param surface: Surface à considérer pour l'action du joueur.
+        :type surface: pygame Surface
+        :param event: Action réalisée par le joueur.
+        :type event: pygame Event
+
+        :return: Renvoie "pass" si la souris est dans la surface considérée et "click" si il y a un click dans la surface.
+        :rtype: string
+
+        Auteur : NOEL Océan
+    """
     center = (x+int(surface.get_width() / 2), y+int(surface.get_height() / 2))  # position centrale de l'object
     if event.type == pygame.MOUSEMOTION:
         if abs(event.pos[0] - center[0]) <= surface.get_width() / 2 and abs(event.pos[1] - center[1]) <= surface.get_height() / 2:
@@ -209,22 +260,31 @@ def get_pass_and_click(x,y,surface,event):
 
 def check_all_event(event,objects):
     """
-        Vérifie si l'utilisateur place sa souris sur les zone ou clique sur les zones des objets mis en paramètre
+        Lance les méthodes de chaque objets qui vérifient si l'utilisateur place sa souris ou clique dessus.
 
-        Paramètres :
-            event(Object Pygame.event)
-                Action réalisée par l'utilisateur à analyser.
+        :param event: Action réalisée par l'utilisateur à analyser.
+        :type event: pygame Event
+        :param objects: Objets pour lesquelles vérifier si il y a une intéraction avec la souris.
+        :type objects: numpy Array
 
-            object(numpy.Array(Object))
-                Objets pour lesquelles on veut vérifier si il y a une intéraction avec la souris
+        Auteur : NOEL Océan
     """
     for object in objects :
         object.check_event(event)
 
-def Update_Objects(player,IA,board): #ajouter paramètre "IA"
-    #fonction qui update tout les objets graphique à mettre à jour régulièrement
-    #Update des nombres de wagons et de crédits du joueur et de l'IA
-    #...
+def Update_Objects(player,IA,board):
+    """
+        Met à jour différents paramètres liés aux indications données graphiquement à l'utilisateur tel que sont nombre de crédit ou de cartes wagons.
+
+        :param player: Joueur dont on veut afficher les données.
+        :type player: Object Player
+        :param IA: IA dont on veut afficher les données.
+        :type IA: Object Player
+        :param board: Plateau du jeu qui contient des éléments à mettre à jour.
+        :type board: Object Board
+
+        Auteur : NOEL Océan
+    """
     #Update des boutons indiquant le nombre de cartes wagons du joueur
     i = 0
     colors = player.cards_number
@@ -246,6 +306,19 @@ def Update_Objects(player,IA,board): #ajouter paramètre "IA"
         board.buttons[i].texte = str(IA.points)
 
 def show_visible_wagon(player,pioche,liste):
+    """
+         Met à jour différents paramètres liés aux cartes wagons visibles graphiquement sur le plateau.
+         Permet de régulièrement les replacer après la pioche du joueur,de les afficher correctements et de les rendre intéractives.
+
+         :param player: Joueur actuel de la partie.
+         :type player: Object Player
+         :param pioche: Pioche de cartes wagons dont il faut mettre à jour les cartes visibles.
+         :type pioche: Object Player
+         :param liste: Liste qui rend les objets intéractifs dans laquelle il faut ajouter les cartes.
+         :type liste: list
+
+         Auteur : NOEL Océan
+     """
 
     #attribution des paramètres nécessaires aux cartes visibles pour l'intéraction avec l'utilisateur
     pioche.cards[0].position = (0.83, 0.16)
@@ -285,22 +358,32 @@ def show_visible_wagon(player,pioche,liste):
         pioche.cards[i].changed = True
 
 def add_road(linked_cities,road):
+    """
+         Actualise les routes reliés par le joueur, les villes reliées entre elles sont dans une même liste.
+
+         :param linked_cities: Liste des routes déjà reliées par le joueur.
+         :type linked_cities: numpy Array
+         :param road: Route reliant deux villes à ajouter à la liste du joueur.
+         :type road: Object Road
+
+         Auteur : NOEL Océan
+     """
     link_found = 0 #stock le nombre de suite de villes auquelle on a ajouté des nouvelles villes
-    first_link_found_index = 0
-    for links in linked_cities :
+    first_link_found_index = 0 #garde en mémoir l'indice de la première liaison trouvée
+    for links in linked_cities : #pour toutes les liste de villes reliées du joueur, on vérifie si la nouvelle route permet d'ajouter une ville à ces listes
         if link_found == 0 : #seulement si on avait pas trouvé de liens avant
-            if road.cities[0] in links and road.cities[1] not in links: #on ajout l'autre composant a la liaison de villes si il n'est pas déjà dedans
+            if road.cities[0] in links and road.cities[1] not in links: #si une des villes relié par la route est dans une des liste, alors on ajout l'autre ville de la route si elle n'etait pas déjà dedans
                 link_found += 1
                 links.append(road.cities[1])
                 first_link_found_index = linked_cities.index(links) #on récupère l'indice de la première liaison dans laquelle on a ajouté la nouvelle route
-            elif road.cities[1] in links and road.cities[0] not in links:
+            elif road.cities[1] in links and road.cities[0] not in links: #
                 link_found += 1
                 links.append(road.cities[0])
                 first_link_found_index = linked_cities.index(links)
-            elif road.cities[1] in links and road.cities[0] in links : #si les deux sont dedans on ne fais rien
+            elif road.cities[1] in links and road.cities[0] in links : #si les deux villes sont dedans on ne fais rien
                 link_found += 1
                 first_link_found_index = linked_cities.index(links)
-        else : #sinon si on avait trouvé des liens avant, on fusionnera toutes les autres liaisons qui ont aussi un lien
+        else : #sinon si on avait trouvé des liens avant, on fusionnera toutes les autres liaisons qui ont aussi un lien,
             if road.cities[0] in links and road.cities[1] not in links:
                 linked_cities[first_link_found_index] = linked_cities[first_link_found_index] + links
                 linked_cities.remove(links)
@@ -319,11 +402,26 @@ def add_road(linked_cities,road):
         linked_cities.append([road.cities[0],road.cities[1]])
 
 def check_destinis(linked_cities,destination_cards,ckeck_or_addpoints = True):
+    """
+         Actualise les cartes destinations du joueur si il les a terminé et renvoie le nombre de points gagné ou perdu avec ces cartes.
+
+         :param linked_cities: Liste des routes reliées par le joueur.
+         :type linked_cities: numpy Array
+         :param destination_cards: Cartes destinations du joueur.
+         :type destination_cards: list
+         :param ckeck_or_addpoints: Faux pour uniquement mettre à jour les cartes destination faites graphiquement, vrai pour aussi renvoyer le total de points gagné par le joeur avec ses cartes objectifs.
+         :type ckeck_or_addpoints: bool
+
+         :return: Renvoie le total de points gagné par le joeur avec ses cartes objectifs.
+         :rtype: int or None
+
+         Auteur : NOEL Océan
+     """
     all_combinaisons = [] #stockage de toutes les combinaisons de villes que le joueur à réussi à avoir
     for links in linked_cities:
         all_combinaisons += list(combinations(links,2))
     all_combinaisons2 = []
-    for combinaison in all_combinaisons :
+    for combinaison in all_combinaisons : #prise en compte des combinaisons inverses
         all_combinaisons2.append((combinaison[1],combinaison[0]))
     all_combinaisons = all_combinaisons+all_combinaisons2
     total_points = 0
@@ -340,12 +438,36 @@ def check_destinis(linked_cities,destination_cards,ckeck_or_addpoints = True):
                 total_points -= card.points
     return total_points
 
-def get_font(size):  # Returns Press-Start-2P in the desired size
+def get_font(size):
+    """
+        Renvoie une police a la taille voulue.
+
+        :param size: Taille voulue pour la police.
+        :type size: int
+        :return: La police voulue avec la taille donnée.
+        :rtype: Object pygame.font
+
+        Auteur : LEVRIER-MUSSAT Gautier
+    """
     return pygame.font.Font(r"Resources/fontCorona.ttf", size)
 
 def show_final_score(player,ia,level,FINAL_SCORE_MENU):
+    """
+        Affiche la fenêtre de fin de partie avec les résultats et sauvegarde les scores dans un fichier texte.
+
+        :param player: Joueur de la partie.
+        :type player: Object Player
+        :param IA: IA de la partie.
+        :type IA: Object Player
+        :param level: Niveau de l'IA.
+        :type level: String
+        :param FINAL_SCORE_MENU: Boutton qui permet de fermer la fenetre et de terminer la fonction.
+        :type FINAL_SCORE_MENU: Object Boutton
+
+        Auteur : LEVRIER-MUSSAT Gautier
+    """
     f = open("Resources/logs/Results_game.txt",'a')
-    f.write("/n"+str(datetime.now().date())+" ; "+str(datetime.now().time())[0:5]+" ; "+level+" : " +str(player.points)+' , '+str(ia.points))
+    f.write("\n"+str(datetime.now().date())+" ; "+str(datetime.now().time())[0:5]+" ; "+level+" : " +str(player.points)+' , '+str(ia.points))
     f.close()
     window = pygame.display.get_surface()
     ecart = int(pygame.display.Info().current_h / 10)
@@ -381,6 +503,14 @@ def show_final_score(player,ia,level,FINAL_SCORE_MENU):
         pygame.display.update()
 
 def destination_cards_f():
+    """
+        Renvoie la liste des paramètres de toutes les cartes destinations à créer depuis un fichier texte.
+
+        :return: Renvoie la liste des paramètre issus du fichier texte.
+        :rtype: list
+
+        Auteur : LEVRIER-MUSSAT Gautier
+    """
     f = open("Resources/logs/Destination.txt", 'r')
     ligne = f.readlines()
     f.close()
@@ -388,8 +518,23 @@ def destination_cards_f():
     return ligne
 
 def intelligent_choice(roads,IA):
-    #On génère le graphe qui modélise les difficultés de chaque chemins pour l'IA en fonction de ces cartes
-    Map = create_graphe(roads,IA)
+    """
+         Défini et structure la méthode de l'IA pour choisir quelles routes elle doit essayer de prendre.
+         En fonction des cartes destinations de l'IA et de la difficulté des routes, cette fonction détermine quel chemin parcourir pour atteindre son objectif rapidement et renvoie les routes à prendre qui permettent de réaliser ce chemin.
+
+         :param roads: Liste des routes du plateau.
+         :type roads: list
+         :param IA: IA de la partie.
+         :type IA: Object Player
+
+         :return: Renvoie les routes qu l'IA doit essayer de prendre pour atteindre son objectif.
+         :rtype: list
+
+         Auteur : NOEL Océan
+     """
+
+    #On génère le graphe qui modélise les difficultés de chaque chemins pour l'IA
+    Map = create_graphe(roads)
 
     #ensuite on choisi de se concentrer sur la carte destination qui a le chemin le plus facile à faire
     difficulty = [] #liste qui stocke les différentes difficultées des cartes destinations
@@ -415,10 +560,22 @@ def intelligent_choice(roads,IA):
         return [] #on renvoie aucune routes
 
 def intelligent_draw(roads,pioche,no_joker = False):
-    """pour choix carte, prendre que les couleurs des routes qui permettent de faire un objectif,
-            ou des jokers (si pas de couleurs bien trouvée); faire un orde de priorité des routes,
-            comme ca on cherche toujours a finir une route en priorité et si y'a pas la couleur dan sla pioche,
-            on tente avec deuxième route prio, puis joker si rien, et finalement pioche carte non visible si pas joker"""
+    """
+         Défini et structure la méthode de l'IA pour choisir quelles cartes wagons elle doit piocher en fonction des routes qu'elle veut prendre.
+         Renvoie la position de la carte wagon à piocher dans la pioche du plateau.
+
+         :param roads: Liste des routes du plateau.
+         :type roads: list
+         :param pioche: Pioche des cartes wagons.
+         :type pioche: Object Draw_pile
+         :param no_joker: Défini si l'IA à le droit de piocher une carte joker.
+         :type no_joker: bool
+
+         :return: Position de la carte wagon à piocher dans la pioche du plateau.
+         :rtype: int
+
+         Auteur : NOEL Océan
+     """
 
     color_needed = []
     for road in roads :
@@ -440,13 +597,24 @@ def intelligent_draw(roads,pioche,no_joker = False):
     #et si il n'y a pas de joker non plus, on pioche une carte cachée
     return 5
 
-def create_graphe(roads,IA):
+def create_graphe(roads):
+    """
+         Créer un graph qui modélise la structure actuelle des routes sur le plateau et fixe une dificulté pour chacune d'elle.
+
+         :param roads: Liste des routes du plateau.
+         :type roads: list
+
+         :return: Renvoie le graph associé aux routes du plateau.
+         :rtype: dijkstra Graph
+
+         Auteur : NOEL Océan
+     """
 
     #création d'un graphe
     Map = dj.Graph()
     #Création des liaisons
     for road in roads :
-        value = len(road.sites)
+        value = len(road.sites) #difficulté de la route
         if road.color == "tout":
             value -= 1 #on favorise les liaisons joker
         if road.taken == True and road.taken_by == "player" : #si la route est déjà prise par le joueur, on rend le chemin impraticable pour le graph
@@ -458,6 +626,19 @@ def create_graphe(roads,IA):
     return Map
 
 def get_roads(path,roads):
+    """
+         Renvoie les routes nécessaire pour parcourir un chemin entre des villes donné.
+
+         :param path: Chemin de ville à suivre (exemple : ["ville1","ville4","ville2"]).
+         :type path: list
+         :param roads: Liste des routes du plateau.
+         :type roads: list
+
+         :return: Renvoie les routes que l'IA doit essayer de prendre pour atteindre son objectif.
+         :rtype: list
+
+         Auteur : NOEL Océan
+     """
 
     #extraire les routes nécessaire pour réaliser le chemin voulu
     road_needed = []
@@ -469,5 +650,3 @@ def get_roads(path,roads):
                 road_needed.append(road)
 
     return road_needed
-
-#/////POUBELLE/////

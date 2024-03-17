@@ -4,7 +4,7 @@ import pygame
 import random
 
 """
-Test des objets
+ Module de Test. Ce module test les méthodes élémentaires qui sont le plus utilisées dans notre programme.
 """
 
 pygame.init()
@@ -12,11 +12,13 @@ display_surface = pygame.display.set_mode((10, 10))
 
 class TestCard(unittest.TestCase):
     """
-        Test de l'objet Card, qui représente une carte.
+        Test de l'objet Card, qui représente une carte. Vérification de leur bonne initialisation.
     """
     def setUp(self):
         """
-            On créer toutes les cartes possibles pour les tests
+            Création de toutes les cartes possibles pour les tests
+
+             Auteur : NOEL Océan
         """
         #création de toutes les cartes destinations
         self.destination_cards = []
@@ -33,7 +35,10 @@ class TestCard(unittest.TestCase):
 
     def test_init(self):
         """
-            On vérifie que la variable path des cartes créé est bien assigné automatiquement en fonction de la couleur ou de la destination de cette dernière
+            Vérification que la variable path des cartes créés est bien assignée automatiquement
+            en fonction de la couleur ou de la destination de cette dernière.
+
+             Auteur : NOEL Océan
         """
         #TEST du bon paramétrage des cartes wagons
         for card in self.wagon_cards:
@@ -73,14 +78,18 @@ class TestDraw_pile(unittest.TestCase):
     """
     def setUp(self):
         """
-            On créer une liste de cartes et une pioche qui contient ces cartes
+            Création des pioches.
+
+            Auteur : NOEL Océan
         """
         self.pile1 = Draw_pile(list_cards)
         self.pile2 = Draw_pile(list_cards2)
 
     def test_init(self):
         """
-            On vérifie que la pioche créée contient bien les cartes des listes initiales
+            Vérification que la pioche créée contient bien les cartes des listes initiales
+
+             Auteur : NOEL Océan
         """
         # ////TESTS////
         # on vérifie que la taille des pioches est correcte
@@ -93,7 +102,9 @@ class TestDraw_pile(unittest.TestCase):
 
     def test_mix(self):
         """
-            On test la méthode pour mélanger les cartes
+            Test la méthode pour mélanger les cartes
+
+             Auteur : NOEL Océan
         """
         # ////INITIALISATION////
         self.pile1.mix() #on mélange les carte
@@ -106,19 +117,20 @@ class TestDraw_pile(unittest.TestCase):
     def test_draw(self):
         """
             On test la méthode pour piocher, elle renvoie une liste des cartes qu'on a pioché et les enlève de la pioche cible.
+
+             Auteur : NOEL Océan
         """
         for i in range(10): #on fait 10 tests différents avec des valeurs aléatoires
             amount1 = random.randint(0,len(self.pile1.cards)-1) #nombre de carte à piocher dans la pioche1
             amount2 = random.randint(0,len(self.pile2.cards)-1) #nombre de carte à piocher dans la pioche2
             pos1 = random.randint(0,len(self.pile1.cards)-1-amount1) #a partir de quelle position piocher dans la pioche 1
             pos2 = random.randint(0,len(self.pile2.cards)-1-amount2)#a partir de quelle position piocher dans la pioche 1
+
             # ////INITIALISATION////
-            #on réinitialise nos pioche comme au début
             to_draw1 = self.pile1.cards[pos1:pos1+amount1] #résultat auquel on s'attend après avoir piocher amount1 cartes depuis la carte de position pos1 de la pioche 1
             to_draw2 = self.pile2.cards[pos2:pos2+amount2] #résultat auquel on s'attend après avoir piocher amount2 cartes depuis la carte de position pos2 de la pioche 2
             draw1 = self.pile1.draw(amount1,pos1) #on pioche amount1 cartes depuis la carte de position pos1
             draw2 = self.pile2.draw(amount2,pos2) #on pioche amount2 cartes depuis la carte de position pos2
-
             # ////TESTS////
             #vérification des tailles
             self.assertEqual(len(draw1), len(to_draw1))
@@ -127,6 +139,10 @@ class TestDraw_pile(unittest.TestCase):
             #verification qu'on a les cartes voulus en piochant
             self.assertEqual([card.color for card in draw1], [card.color for card in to_draw1])
             self.assertEqual([card.destination for card in draw2], [card.destination for card in to_draw2])
+
+            #remise des cartes dans les pioches pour prochain test
+            self.pile1.cards = np.append(self.pile1.cards,draw1)
+            self.pile2.cards = np.append(self.pile2.cards,draw2)
 
 
 if __name__ == '__main__' :

@@ -6,22 +6,43 @@ Adaptation numérique du jeu de société "Les aventuriers du rail" en python.
 
 AUTEURS : NOEL Océan et LEVRIER-MUSSAT Gautier
 
+### Prérequis
+
+Python 3.7
+
+**Modules supplémentaires nécessaires pour lancer le jeu :**
+
+- **numpy** (dernière version)
+- **random** (dernière version)
+- **playsound** (version 1.2.2)
+- **pygame** (dernière version)
+- **copy** (dernière version)
+- **dijkstra** (dernière version)
+- **sys** (dernière version)
+- **datetime** (dernière version)
+- **itertools** (dernière version)
+- **screeninfo** (dernière version)
+- **time** (dernière version)
+- **importlib** (dernière version)
+
+**Modules nécessaires pour les tests unitaires :**
+- **unittest** (dernière version)
+- **random** (dernière version)
+- **pygame** (dernière version)
+
+
 ### Lancement
 
-ATENTION : modules à ajouter
-- screeninfo
-- playsound (Version 1.2.2) (pas la dernière)
+Pour lancer le jeu, il suffit de lancer le module "menu.py".
 
-Pour la première partie de ce projet, seule les fichiers objects.py, functions.py et test.py on un contenu intéressant.
+Le module "test.py" permet de réaliser les tests, pour cela il suffit de le lancer.
 
-Le module test.py peut être consulté de manière indépendante, mais pour les autres il est conseillé de commencer par le module objects.py puis d'aller voir les details des fonctions utilisées dans functions.py si besoin.
- 
-
-Pour lancer le jeu, il faut lancer le script "game" (Pas encore fonctionnel).
+Après le lancement du jeu, en jouant contre une IA de niveau intermédiaire, il est possible de visualiser ces objectifs et ses choix dans la console.
 
 ### Documentation
 
-Pour obtenir la documentation, il faut lancer le fichier "index.html" :
+Pour obtenir la documentation, il faut lancer le fichier "index.html" qui se trouve dans le chemin donné ci-dessous :
+
 chemin d'accès ...\Doc sphinx\build\html\index.html
 
-Pour la première partie de ce projet il est possible que certaines class non presentées dans le rapport ne soient pas documentées.
+Elle se visualise sur un navigateur.

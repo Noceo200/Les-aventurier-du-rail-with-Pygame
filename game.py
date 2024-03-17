@@ -5,6 +5,10 @@ import pygame
 from screeninfo import get_monitors
 from playsound import playsound
 
+"""
+    Module qui initialise tout nos objects pour une partie et qui contient les fonctions qui définissent le déroulement d'une partie.
+"""
+
 #initialisation des sons
 
 sound_end = 'Resources/Songs/TicketCompletedVictory.mp3'
@@ -269,7 +273,12 @@ Wagon.selected = 0
 
 def IA_turn(level):
     """
-        Tour de l'IA
+        Fonction qui définit et structure les actions de l'IA lorsque que c'est son tour.
+
+        :param level: Niveau de l'IA. "debutant" pour une IA aléatoire ou "intermediaire" pour une IA qui optimise ses choix par rapport à ces objectifs.
+        :type level: String
+
+        Auteur : NOEL Océan
     """
     IA.draw_credit = 2
     #on met un cache transparent
@@ -301,7 +310,7 @@ def IA_turn(level):
             pop_up("L'IA pioche des wagons", Button((0, 0)),objects=selected,choices=False)
     elif level == "intermediaire":
         sucess = False
-        print("Cartes wagons de l'IA : ", str(IA.cards_number))
+        print("\n\nCartes wagons de l'IA : ", str(IA.cards_number))
         roads_2 = intelligent_choice(roads,IA) #le bot sélectionne les routes les plus courtes (relativement à ses cartes) non prises dont il a besoin pour faire ses cartes destinations et essaie de les prendre
         print("nb routes a placer : ",len(roads_2))
         print("Routes testées : ")
@@ -338,7 +347,9 @@ def IA_turn(level):
 
 def player_turn():
     """
-            Tour du joueur
+        Fonction qui définit et structure les actions du joueur lorsque que c'est son tour.
+
+        Auteur : NOEL Océan
     """
     global abandon
     end_turn = False
@@ -376,7 +387,12 @@ abandon = False
 
 def game(level):
     """
-        Fonction qui structure le jeu, alternance entre joueur et IA + vérification fin de jeu
+        Fonction qui définit et structure une partie du jeu, elle permet d'alterner entre le tour du joueur et de l'IA et de vérifier régulièremment les conditions de fin de jeux.
+
+        :param level: Niveau de l'IA. "debutant" pour une IA aléatoire ou "intermediaire" pour une IA qui optimise ses choix par rapport à ces objectifs.
+        :type level: String
+
+        Auteur : NOEL Océan
     """
     #INITIALISATION
     global abandon

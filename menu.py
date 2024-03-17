@@ -2,6 +2,10 @@ from objects import *
 from pygame import mixer
 from importlib import reload
 
+"""
+    Module principale qui structure le menu du jeu et qui lance les parties depuis le module Game.py lorsque l'utilisateur veut jouer.
+"""
+
 pygame.init()#lancement pygame
 
 SCREEN = pygame.display.set_mode((1280, 720))#definition de l'ecran
@@ -18,19 +22,24 @@ first = True #variable pour indiquer premier lancement jeu
 
 def get_font(size):
     """
-        Retourne la police voulue, de la taille voulue
-        Paramètres :
-            size(int):
-             Taille de police voulue.
+        Renvoie une police a la taille voulue.
+
+        :param size: Taille voulue pour la police.
+        :type size: int
+        :return: La police voulue avec la taille donnée.
+        :rtype: Object pygame.font
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
     return pygame.font.Font(r"Resources/fontCorona.ttf", size)
 
-Game = ""
+Game = "" #permet d'initialiser un variable pour stocker le module Game.py
 
 def play():
     """
-        Affiche le menu de jeu avec les différents niveaux de difficulté du joueur
-        Permet de retourner dans le menu principal
+        Affiche le menu de jeu avec les différents niveaux de difficulté pour l'IA, de lancer une partie et de revenir au menu principale ensuite.
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
     changed = False
     global SCREEN
@@ -86,11 +95,9 @@ def play():
                     else:
                         reload(Game)
                     # lancement de la music de fond
-
-
                     mixer.music.load(back_ground_music)
                     mixer.music.play(-1)
-                    Game.game("debutant")
+                    Game.game("debutant") #lancement du jeu
                     changed = True
 
 
@@ -104,7 +111,7 @@ def play():
                     # lancement de la music de fond
                     mixer.music.load(back_ground_music)
                     mixer.music.play(-1)#la musique va se repeter à l'infini
-                    Game.game("intermediaire")
+                    Game.game("intermediaire") #lancement du jeu
                     changed = True
 
         pygame.display.update()
@@ -112,8 +119,9 @@ def play():
 
 def options():
     """
-        Affiche le réglage des paramètre de son dans le menu option
-        Permet de retourner dans le menu principal
+        Affiche le réglage des paramètre de son dans le menu option et permet de retourner dans le menu principal ensuite.
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
 
     while True:
@@ -158,8 +166,9 @@ def options():
 
 def rules():
     """
-        Affiche une image explicitant les règles du jeu
-        Permet de retourner dans le menu principal
+        Affiche une image explicitant les règles du jeu et permet de retourner dans le menu principal ensuite.
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
     regles1 = pygame.image.load(r'Resources/regles1.png')#chargement d'une image
     regles2 = pygame.image.load(r'Resources/regles2.png')
@@ -191,8 +200,9 @@ def rules():
 
 def scores():
     """
-        Affiche le score des anciennes parties jouées
-        Permet de retourner dans le menu principal
+        Affiche le score des anciennes parties jouées en les récupérant depuis un fichier texte et permet de retourner dans le menu principal ensuite.
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
     f = open("Resources/logs/Results_game.txt")#lecture du fichier
     lignes = f.readlines()
@@ -242,8 +252,9 @@ def scores():
 
 def main_menu():
     """
-        Affiche le menu principal
-        Permet de rejoindre les diférents menus (Play,Rules,Scores,Options)
+        Affiche le menu principal et permet de rejoindre les diférents sous-menus (Play,Rules,Scores,Options)
+
+        Auteur : LEVRIER-MUSSAT Gautier
     """
     while True:
         SCREEN.blit(BG, (0, 0))#affichage de l'image au centre de l'ecran
@@ -292,4 +303,4 @@ def main_menu():
         pygame.display.update()
 
 if __name__ == '__main__' :
-    main_menu()
+    main_menu() #lancement du jeu
