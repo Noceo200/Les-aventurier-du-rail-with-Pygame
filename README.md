@@ -1,5 +1,4 @@
 # Projet Python : Les Aventuriers du rail
-Adaptation numérique du jeu de société "Les aventuriers du rail" en python.
 
 ### Description
 
